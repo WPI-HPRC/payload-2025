@@ -47,12 +47,7 @@
   X(float, top_sr_axon_pos)                                                  \
   X(float, left_sr_axon_pos)                                                  \
   X(float, right_sr_axon_pos)                                                  \
-  X(bool, doorMechServo_extended) /*theres no encoder on this but maybe we want to store their likely pos?*/ \
-  X(bool, deliveryServo_extended) /*same as above*/ \
-  X(bool, valve_open) /*same as above*/ \
-  X(bool, drillPinion_extended) /*same as above*/ \
-  X(bool, DRILL_BABY_DRILL_ON) /*same as above*/ /*im sorry for the variable name i need to keep myself entertained on this plane ride somehow and i wish there was a speaker that would just announce a DRILL BABY DRILLL from a cliip of trump whenever the auger servo turned on*/\
-  X(bool, inBush) \ //software boolean for state machine
+  X(bool, inBush) /*software boolean for state machine*/ \ 
   X(float, ir_reading) \
   X(bool, limit_switch1) /*idk what these exactly do yet bc i thought there was supposed to be 3 limit switches for delivery*/\
   X(bool, limit_switch2) \
