@@ -2,6 +2,3 @@
 	path = boilerplate
 	url = https://github.com/WPI-HPRC/boilerplate.git
     branch = main
-[submodule "EmbeddedProto"]
-	path = EmbeddedProto
-	url = https://github.com/Embedded-AMS/EmbeddedProto.git
