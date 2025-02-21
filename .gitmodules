@@ -5,3 +5,6 @@
 [submodule "EmbeddedProto"]
 	path = EmbeddedProto
 	url = https://github.com/Embedded-AMS/EmbeddedProto.git
+[submodule "telemetry-2025"]
+	path = telemetry-2025
+	url = https://github.com/WPI-HPRC/telemetry-2025.git
