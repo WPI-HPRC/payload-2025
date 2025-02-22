@@ -1,4 +1,4 @@
 [submodule "boilerplate"]
-	path = boilerplate
+	path = src/boilerplate
 	url = https://github.com/WPI-HPRC/boilerplate.git
     branch = main
