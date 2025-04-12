@@ -1,10 +1,9 @@
 [submodule "src/boilerplate"]
 	path = src/boilerplate
 	url = https://github.com/WPI-HPRC/boilerplate.git
-    branch = main
-[submodule "EmbeddedProto"]
-	path = EmbeddedProto
-	url = https://github.com/Embedded-AMS/EmbeddedProto.git
-[submodule "telemetry-2025"]
-	path = telemetry-2025
-	url = https://github.com/WPI-HPRC/telemetry-2025.git
+[submodule "src/xbee"]
+	path = src/xbee
+	url = https://github.com/wpi-hprc/xbee
+[submodule "proto"]
+	path = proto
+	url = https://github.com/wpi-hprc/telemetry-2025
