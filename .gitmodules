@@ -1,5 +1,5 @@
-[submodule "boilerplate"]
-	path = boilerplate
+[submodule "src/boilerplate"]
+	path = src/boilerplate
 	url = https://github.com/WPI-HPRC/boilerplate.git
     branch = main
 [submodule "EmbeddedProto"]
