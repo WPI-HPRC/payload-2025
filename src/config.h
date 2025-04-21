@@ -22,6 +22,9 @@
     #define SENSOR_SDA PB7
 
     #define LED_PIN PB9
+
+    // Servos for MARS
+
 #elif defined(POLARIS)
     #include "boilerplate/Sensors/Impl/MAX10S.h"
     #include "boilerplate/Sensors/Impl/Polaris/ICM42688.h"
@@ -39,4 +42,7 @@
     #define SENSOR_SDA 18
     
     #define LED_PIN 6
+
+    // Servos for POLARIS
+
 #endif
