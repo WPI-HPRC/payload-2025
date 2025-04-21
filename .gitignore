@@ -1,2 +1,7 @@
-.vscode
 .pio
+.vscode
+**/.cache
+**/compile_commands.json
+.idea
+.DS_Store
+.direnv

@@ -11,6 +11,14 @@ enum StateId {
     ID_Coast,
     ID_DrogueDescent,
     ID_MainDescent,
+    ID_JudgeRighting,
+    ID_VerticalSide,
+    ID_HorizontalSide,
+    ID_Flail,
+    ID_ExtendAuger,
+    ID_Drill,
+    ID_SolidDelivery,
+    ID_LiquidDelivery,
     ID_Recovery,
     ID_Abort
 };
@@ -37,6 +45,22 @@ STATE(Coast);
 STATE(DrogueDescent);
 
 STATE(MainDescent);
+
+STATE(JudgeRighting);
+
+STATE(VerticalSide);
+
+STATE(HorizontalSide);
+
+STATE(Flail);
+
+STATE(ExtendAuger);
+
+STATE(Drill);
+
+STATE(SolidDelivery);
+
+STATE(LiquidDelivery);
 
 STATE(Recovery);
 
