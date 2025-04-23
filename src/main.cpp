@@ -11,47 +11,48 @@
 
 #include "config.h"
 
-#include "pb_decode.h"
-#include "pb_encode.h"
-#include "RocketTelemetryPacket.pb.h"
 #include "telemetry/XBeeProSX.h"
 
 #if defined(MARS)
 SdFat sd;
 #endif
-File file;
 
 #define SD_SPI_SPEED SD_SCK_MHZ(50)
 
-HPRC_RocketTelemetryPacket packet = HPRC_RocketTelemetryPacket_init_zero;
-uint8_t buffer[4096];
-pb_ostream_t ostream = pb_ostream_from_buffer(buffer, sizeof(buffer));
-
 #if defined(MARS)
-SPIClass xbee_spi;
+SPIClass xbee_spi(XBEE_MOSI, XBEE_MISO, XBEE_SCLK);
 #elif defined(POLARIS)
 SPIClass xbee_spi = SPI;
 #endif
 
-XbeeProSX xbee(XBEE_CS, &xbee_spi);
-
 Context ctx = {
 #if defined(MARS)
-    .accel = new ASM330(),
-    .baro = new LPS22(),
-    .mag = new ICM20948(),
+    .accel = ASM330(),
+    .baro = LPS22(),
+    .mag = ICM20948(),
 #elif defined(POLARIS)
-    .accel = new ICM42688_(),
-    .baro = new MS5611(),
-    .mag = new MMC5983(),
+    .accel = ICM42688_(),
+    .baro = MS5611(),
+    .mag = MMC5983(),
 #endif
-    .gps = new MAX10S(),
+    .gps = MAX10S(),
+    .auger = ServoController(AUGER),
+    .rack_pinion = ServoController(RACK_PINION),
+    .pinion_door_1 = ServoController(PINION_DOOR_1),
+    .pinion_door_2 = ServoController(PINION_DOOR_2),
+    .lead_screw = ServoController(LEAD_SCREW),
+    .axon1 = ServoController(AXON_1_IN, AXON_1_OUT),
+    .axon2 = ServoController(AXON_2_IN, AXON_2_OUT),
+    .flightMode = false,
 };
 
+XbeeProSX xbee =
+    XbeeProSX(&ctx, XBEE_CS, XBEE_ATTN, GROUNDSTATION_XBEE_ADDRESS, &xbee_spi);
+
 #if defined(MARS)
-Sensor *sensors[] = {ctx.accel, ctx.baro, ctx.gps};
+Sensor *sensors[] = {&ctx.accel, &ctx.baro, &ctx.gps, &ctx.mag};
 #elif defined(POLARIS)
-Sensor *sensors[] = {ctx.accel, ctx.baro, ctx.mag, ctx.gps};
+Sensor *sensors[] = {&ctx.accel, &ctx.baro, &ctx.mag, &ctx.gps};
 #endif
 
 SensorManager<decltype(&millis), sizeof(sensors) / sizeof(Sensor *)>
@@ -90,6 +91,16 @@ void output_byte(uint8_t data, uint pin) {
 }
 
 void setup() {
+#if defined(MARS)
+    // P_Good pins
+    pinMode(PE0, OUTPUT); // PG3V3_LED
+    pinMode(PE1, OUTPUT); // PG5V_LED
+    pinMode(PA3, INPUT);  // PG3V3
+    pinMode(PC4, INPUT);  // PG5V
+
+    digitalWrite(PE0, digitalRead(PA3));
+    digitalWrite(PE1, digitalRead(PC4));
+#endif
     Serial.begin(9600);
 
     Wire.setSCL(SENSOR_SCL);
@@ -97,11 +108,6 @@ void setup() {
     Wire.begin();
 
 #if defined(MARS)
-    xbee_spi.setSCLK(XBEE_SCLK);
-    xbee_spi.setMISO(XBEE_MISO);
-    xbee_spi.setMOSI(XBEE_MOSI);
-    xbee_spi.begin();
-
     SPI.setSCLK(SD_SCLK);
 #elif defined(POLARIS)
     SPI.setSCK(SD_SCLK);
@@ -110,6 +116,9 @@ void setup() {
     SPI.setMOSI(SD_MOSI);
     SPI.begin();
 
+    // while (!Serial)
+    //     delay(5);
+
     stateMachine.initialize();
     sensorManager.sensorInit();
 
@@ -117,49 +126,91 @@ void setup() {
 
     pinMode(LED_PIN, OUTPUT);
 
-    xbee.start();
-
 #if defined(MARS)
     sd_initialized = sd.begin(SD_CS, SD_SPI_SPEED);
-    error_code = sd.card()->errorCode();
+    // error_code = sd.card()->errorCode();
 
-    file = sd.open("test.txt", O_RDWR | O_CREAT | O_TRUNC);
+    // Serial.printf("%d %d\n", sd_initialized, error_code);
 #elif defined(POLARIS)
     sd_initialized = SD.begin(SD_CS);
-
-    file = SD.open("test.txt", FILE_WRITE_BEGIN);
 #endif
+
+    if (sd_initialized) {
+        int fileIdx = 0;
+        char filename[100];
+        while (fileIdx < 100) {
+            sprintf(filename, "flightData%d.bin", fileIdx++);
+
+            Serial.printf("Trying file `%s`\n", filename);
+#if defined(MARS)
+            if (!sd.exists(filename)) {
+                ctx.logFile = sd.open(filename, O_RDWR | O_CREAT | O_TRUNC);
+                break;
+            }
+#elif defined(POLARIS)
+            if (!SD.exists(filename)) {
+                ctx.logFile = SD.open(filename, FILE_WRITE_BEGIN);
+                break;
+            }
+#endif
+        }
+    }
+
+#if defined(MARS)
+    xbee_spi.begin();
+#endif
+
+    xbee.start();
 
     lastTime = millis();
     lastFlush = millis();
 }
 
 void loop() {
+#if defined(MARS)
+    digitalWrite(PE0, digitalRead(PA3));
+    digitalWrite(PE1, digitalRead(PC4));
+#endif
     stateMachine.loop();
     sensorManager.loop();
+    xbee.loop();
 
     // ctx.accel->debugPrint(file);
     // ctx.baro->debugPrint(file);
     // ctx.gps->debugPrint(Serial);
 
     // file.println(millis());
-
     long now = millis();
-    if (sd_initialized && now - lastTime >= 250) {
+    if (now - lastTime >= 250) {
         lastTime = now;
-        state = !state;
+
+        ctx.accel.debugPrint(Serial);
+        ctx.baro.debugPrint(Serial);
+        ctx.gps.debugPrint(Serial);
+        ctx.mag.debugPrint(Serial);
+        // Serial.print("Flight mode: "); Serial.println(ctx.flightMode);
+        ctx.auger.init();
+        ctx.rack_pinion.init();
+        ctx.pinion_door_1.init();
+        ctx.pinion_door_2.init();
+        ctx.lead_screw.init();
+        ctx.axon1.init();
+        ctx.axon2.init();
+        
+        if (sd_initialized) {
+            state = !state;
+            ctx.accel.debugPrint(ctx.logFile);
+            ctx.baro.debugPrint(ctx.logFile);
+            ctx.gps.debugPrint(ctx.logFile);
+            ctx.mag.debugPrint(ctx.logFile);
+        }
     }
     digitalWrite(LED_PIN, state);
 
-    if (now - lastFlush >= 3000) {
-        packet.timestamp = now;
-        packet.altitude = ctx.baro->getData().altitude;
-        pb_encode(&ostream, &HPRC_RocketTelemetryPacket_msg, &packet);
-        xbee_spi.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
-        xbee.sendTransmitRequestCommand(0x0013A200423F474C, buffer, ostream.bytes_written);
-        xbee_spi.endTransaction();
-
+    if (now - lastFlush >= 1000) {
         lastFlush = now;
-        file.flush();
+        ctx.logFile.flush();
     }
+
+    delay(1);
 }
