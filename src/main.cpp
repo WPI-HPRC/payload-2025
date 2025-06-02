@@ -2,8 +2,11 @@
 
 #include "Context.h"
 #include "Wire.h"
+#include "airbrakes/AirbrakeController.h"
+#include "boilerplate/Looper/Looper.h"
 #include "boilerplate/Sensors/Sensor/Sensor.h"
-#include "pb.h"
+#include "boilerplate/StateEstimator/AttEkf.h"
+#include "boilerplate/StateEstimator/PVKF.h"
 #include "states/States.h"
 #include <SPI.h>
 #include <boilerplate/Sensors/SensorManager/SensorManager.h>
@@ -11,61 +14,44 @@
 
 #include "config.h"
 
-#include "pb_decode.h"
-#include "pb_encode.h"
-#include "RocketTelemetryPacket.pb.h"
 #include "telemetry/XBeeProSX.h"
 
-#if defined(MARS)
-SdFat sd;
-#endif
-File file;
-
-#define SD_SPI_SPEED SD_SCK_MHZ(50)
-
-HPRC_RocketTelemetryPacket packet = HPRC_RocketTelemetryPacket_init_zero;
-uint8_t buffer[4096];
-pb_ostream_t ostream = pb_ostream_from_buffer(buffer, sizeof(buffer));
 
 #if defined(MARS)
-SPIClass xbee_spi;
+SPIClass xbee_spi(XBEE_MOSI, XBEE_MISO, XBEE_SCLK);
 #elif defined(POLARIS)
 SPIClass xbee_spi = SPI;
 #endif
 
-XbeeProSX xbee(XBEE_CS, &xbee_spi);
-
 Context ctx = {
 #if defined(MARS)
-    .accel = new ASM330(),
-    .baro = new LPS22(),
-    .mag = new ICM20948(),
+    .accel = ASM330(),
+    .baro = LPS22(),
+    .mag = ICM20948(),
+    .sd = SdFs(),
 #elif defined(POLARIS)
-    .accel = new ICM42688_(),
-    .baro = new MS5611(),
-    .mag = new MMC5983(),
+    .accel = ICM42688_(),
+    .baro = MS5611(),
+    .mag = MMC5983(),
 #endif
-    .gps = new MAX10S(),
+    .gps = MAX10S(),
+    .flightMode = false,
 };
 
-#if defined(MARS)
-Sensor *sensors[] = {ctx.accel, ctx.baro, ctx.gps};
-#elif defined(POLARIS)
-Sensor *sensors[] = {ctx.accel, ctx.baro, ctx.mag, ctx.gps};
-#endif
+XbeeProSX xbee = XbeeProSX(&ctx, XBEE_CS, XBEE_ATTN, GROUNDSTATION_XBEE_ADDRESS,
+                           &xbee_spi, 0);
 
-SensorManager<decltype(&millis), sizeof(sensors) / sizeof(Sensor *)>
-    sensorManager(sensors, millis);
+Sensor *sensors[] = {&ctx.accel, &ctx.baro, &ctx.gps, &ctx.mag};
+
+SensorManager sensorManager(sensors, millis);
 
 StateMachine stateMachine((State *)new PreLaunch(&ctx));
 
+AttStateEstimator quatEkf(ctx.mag.getData(), 0.025);
+PVStateEstimator pvKF(ctx.baro.getData(), ctx.mag.getData(), ctx.gps.getData(), ctx.gps, 0.025);
+
 bool sd_initialized = false;
-long lastTime = 0;
 bool state = true;
-
-long lastFlush = 0;
-
-uint8_t error_code;
 
 // Outputs the bits in the byte `data` in MSB order over `pin`
 void output_byte(uint8_t data, uint pin) {
@@ -89,19 +75,42 @@ void output_byte(uint8_t data, uint pin) {
     delay(1000);
 }
 
+void mainLoop();       // Main update
+void xbeeLoop();       // xbee send
+void EKFLoop();        // EKF
+void loggingLoop();    // Logging (not called when flightMode is set)
+void occasionalLoop(); // For things like flushing SD card
+
+Looper<FunctionsList<mainLoop, xbeeLoop, loggingLoop, occasionalLoop>,
+       FunctionDelaysList<10u, 50u, 250u, 1000u>>
+    looper(100, 10, TIM2);
+Looper<FunctionsList<EKFLoop>, FunctionDelaysList<25u>> lowPrioLooper(1000, 11,
+                                                                      TIM3);
+
 void setup() {
+#if defined(MARS)
+    // P_Good pins
+    pinMode(PE0, OUTPUT); // PG3V3_LED
+    pinMode(PE1, OUTPUT); // PG5V_LED
+    pinMode(PA3, INPUT);  // PG3V3
+    pinMode(PC4, INPUT);  // PG5V
+
+    digitalWrite(PE0, digitalRead(PA3));
+    digitalWrite(PE1, digitalRead(PC4));
+#endif
     Serial.begin(9600);
+
+    // idk if both of the `write`s are necessary, but it seems to help with it
+    // not reseting to neutral for very long
+    ctx.airbrakes.write(SERVO_MIN);
+    ctx.airbrakes.init();
+    ctx.airbrakes.write(SERVO_MIN);
 
     Wire.setSCL(SENSOR_SCL);
     Wire.setSDA(SENSOR_SDA);
     Wire.begin();
 
 #if defined(MARS)
-    xbee_spi.setSCLK(XBEE_SCLK);
-    xbee_spi.setMISO(XBEE_MISO);
-    xbee_spi.setMOSI(XBEE_MOSI);
-    xbee_spi.begin();
-
     SPI.setSCLK(SD_SCLK);
 #elif defined(POLARIS)
     SPI.setSCK(SD_SCLK);
@@ -110,6 +119,9 @@ void setup() {
     SPI.setMOSI(SD_MOSI);
     SPI.begin();
 
+    // while (!Serial)
+    //     delay(5);
+
     stateMachine.initialize();
     sensorManager.sensorInit();
 
@@ -117,49 +129,130 @@ void setup() {
 
     pinMode(LED_PIN, OUTPUT);
 
-    xbee.start();
-
 #if defined(MARS)
-    sd_initialized = sd.begin(SD_CS, SD_SPI_SPEED);
-    error_code = sd.card()->errorCode();
-
-    file = sd.open("test.txt", O_RDWR | O_CREAT | O_TRUNC);
+    sd_initialized = ctx.sd.begin(SD_CS, SD_SPI_SPEED);
 #elif defined(POLARIS)
     sd_initialized = SD.begin(SD_CS);
-
-    file = SD.open("test.txt", FILE_WRITE_BEGIN);
 #endif
 
-    lastTime = millis();
-    lastFlush = millis();
+    if (sd_initialized) {
+        int fileIdx = 0;
+        char filename[100];
+        while (fileIdx < 100) {
+            sprintf(filename, "flightData%d.csv", fileIdx++);
+
+            Serial.printf("Trying file `%s`\n", filename);
+#if defined(MARS)
+            if (!ctx.sd.exists(filename)) {
+                ctx.logFile = ctx.sd.open(filename, O_RDWR | O_CREAT | O_TRUNC);
+                break;
+            }
+#elif defined(POLARIS)
+            if (!SD.exists(filename)) {
+                ctx.logFile = SD.open(filename, FILE_WRITE_BEGIN);
+                break;
+            }
+#endif
+        }
+    }
+
+    if (ctx.logFile) {
+        ctx.logCsvHeader();
+    }
+
+#if defined(MARS)
+    xbee_spi.begin();
+#endif
+
+    xbee.start();
+
+    looper.init();
+    lowPrioLooper.init();
 }
 
-void loop() {
+void mainLoop() {
+    static uint32_t lastBaroDataLogged = 0;
+    static uint32_t lastAccelDataLogged = 0;
+    static uint32_t lastMagDataLogged = 0;
+    static uint32_t lastGpsDataLogged = 0;
+
+#if defined(MARS)
+    digitalWrite(PE0, digitalRead(PA3));
+    digitalWrite(PE1, digitalRead(PC4));
+#endif
+
     stateMachine.loop();
     sensorManager.loop();
 
-    // ctx.accel->debugPrint(file);
-    // ctx.baro->debugPrint(file);
-    // ctx.gps->debugPrint(Serial);
+    if (sd_initialized && ctx.logFile) {
+        ctx.logFile.print(millis());
+        ctx.logFile.print(",");
+        if (lastBaroDataLogged < ctx.baro.getLastTimePolled()) {
+            lastBaroDataLogged = ctx.baro.getLastTimePolled();
+            ctx.baro.logCsvRow(ctx.logFile);
+        }
+        ctx.logFile.print(",");
+        if (lastAccelDataLogged < ctx.accel.getLastTimePolled()) {
+            lastAccelDataLogged = ctx.accel.getLastTimePolled();
+            ctx.accel.logCsvRow(ctx.logFile);
+        }
+        ctx.logFile.print(",");
+        if (lastMagDataLogged < ctx.mag.getLastTimePolled()) {
+            lastMagDataLogged = ctx.mag.getLastTimePolled();
+            ctx.mag.logCsvRow(ctx.logFile);
+        }
+        ctx.logFile.print(",");
+        if (lastGpsDataLogged < ctx.gps.getLastTimePolled()) {
+            lastGpsDataLogged = ctx.gps.getLastTimePolled();
+            ctx.gps.logCsvRow(ctx.logFile);
+        }
+        ctx.logFile.println();
+    }
+}
 
-    // file.println(millis());
+void xbeeLoop() { xbee.loop(); }
 
-    long now = millis();
-    if (sd_initialized && now - lastTime >= 250) {
-        lastTime = now;
+void EKFLoop() {
+    static bool attEkfInitialized = false;
+    static bool pvInit = false;
+
+    if(attEkfInitialized && !pvInit){
+        TimedPointer<MAX10SData> gpsData = ctx.gps.getData(); 
+        TimedPointer<LPS22Data> baroData = ctx.baro.getData(); 
+        BLA::Matrix<6,1> initialPV = {gpsData->lat, gpsData->lon, baroData->altitude, 0, 0, 0}; 
+        pvKF.init(initialPV, ctx.quatState); 
+        pvInit = true; 
+    }
+
+    if (!attEkfInitialized) {
+        quatEkf.init();
+        attEkfInitialized = true;
+    }
+
+    auto x = quatEkf.onLoop(stateMachine.getCurrentStateId() == ID_PreLaunch);
+    auto pv = pvKF.onLoop(); 
+
+    // disabling interrupts here may not be necessary, but it guarantees we
+    // don't read context from the high priority interrupt in an invalid state,
+    // since that one can preempt this one.
+    noInterrupts();
+    ctx.quatState = x;
+    //ctx.pvState = pv; 
+    interrupts();
+}
+
+void loggingLoop() {
+    ctx.accel.debugPrint(Serial);
+    ctx.baro.debugPrint(Serial);
+    ctx.gps.debugPrint(Serial);
+    ctx.mag.debugPrint(Serial);
+
+    if (sd_initialized && ctx.logFile) {
         state = !state;
     }
     digitalWrite(LED_PIN, state);
-
-    if (now - lastFlush >= 3000) {
-        packet.timestamp = now;
-        packet.altitude = ctx.baro->getData().altitude;
-        pb_encode(&ostream, &HPRC_RocketTelemetryPacket_msg, &packet);
-        xbee_spi.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
-        xbee.sendTransmitRequestCommand(0x0013A200423F474C, buffer, ostream.bytes_written);
-        xbee_spi.endTransaction();
-
-        lastFlush = now;
-        file.flush();
-    }
 }
+
+void occasionalLoop() { ctx.logFile.flush(); }
+
+void loop() {}
