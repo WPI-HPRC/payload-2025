@@ -3,6 +3,8 @@
 #include "../Context.h"
 #include "../boilerplate/StateMachine/State.h"
 #include "../boilerplate/StateMachine/StateMachine.h"
+#include "../boilerplate/Utilities/Debouncer.h"
+#include "FlightParams.h"
 #include <Arduino.h>
 
 enum StateId {
@@ -12,10 +14,12 @@ enum StateId {
     ID_DrogueDescent,
     ID_MainDescent,
     ID_JudgeRighting,
-    ID_VerticalSide,
     ID_HorizontalSide,
+    ID_VerticalSide,
     ID_Flail,
-    ID_ExtendAuger,
+    ID_Tumbling,
+    ID_ExtendingAuger,
+    ID_FullyExtendedDrilling,
     ID_Drill,
     ID_SolidDelivery,
     ID_LiquidDelivery,
@@ -26,42 +30,88 @@ enum StateId {
 using State = TState<Context, StateId, decltype(&millis)>;
 using StateMachine = TStateMachine<Context, StateId, decltype(&millis)>;
 
-#define STATE(name)                                                            \
-    class name : public State {                                                \
-      public:                                                                  \
-        name(Context *ctx) : State(ID_##name, ::millis, ctx) {}                \
+#define STATE_INNER(name)                                                      \
+  public:                                                                      \
+    name(Context *ctx) : State(ID_##name, ::millis, ctx) {}                    \
                                                                                \
-      private:                                                                 \
-        void initialize_impl() override;                                       \
-        State *loop_impl() override;                                           \
-    }
+  private:                                                                     \
+    void initialize_impl() override;                                           \
+    State *loop_impl() override;
 
-STATE(PreLaunch);
+class PreLaunch : public State {
+    STATE_INNER(PreLaunch)
 
-STATE(Boost);
+    Debouncer launchAccelDebouncer = Debouncer(500);
+    long lastAccelReadingTime = 0;
+};
 
-STATE(Coast);
+class Boost : public State {
+    STATE_INNER(Boost)
 
-STATE(DrogueDescent);
+    Debouncer burnTimeDebouncer = Debouncer(500);
+    long lastAccelReadingTime = 0;
+};
 
-STATE(MainDescent);
+class Coast : public State {
+    STATE_INNER(Coast)
 
-STATE(JudgeRighting);
+    float prevAltitude = 0;
+};
 
-STATE(VerticalSide);
+class DrogueDescent : public State {
+    STATE_INNER(DrogueDescent)
 
-STATE(HorizontalSide);
+    float prevAltitude = 0;
+};
 
-STATE(Flail);
+class MainDescent : public State {
+    STATE_INNER(MainDescent)
+};
 
-STATE(ExtendAuger);
+class JudgeRighting : public State {
+    STATE_INNER(JudgeRighting)
+};
 
-STATE(Drill);
+class HorizontalSide : public State {
+    STATE_INNER(HorizontalSide)
+};
 
-STATE(SolidDelivery);
+class VerticalSide : public State {
+    STATE_INNER(VerticalSide)
+};
 
-STATE(LiquidDelivery);
+class Flail : public State {
+    STATE_INNER(Flail)
+};
 
-STATE(Recovery);
+class Tumbling : public State {
+    STATE_INNER(Tumbling)
+};
 
-STATE(Abort);
+class ExtendingAuger : public State {
+    STATE_INNER(ExtendingAuger)
+};
+
+class FullyExtendedDrilling  : public State {
+    STATE_INNER(FullyExtendedDrilling)
+};
+
+class Drill : public State {
+    STATE_INNER(Drill)
+};
+
+class SolidDelivery : public State {
+    STATE_INNER(SolidDelivery)
+};
+
+class LiquidDelivery : public State {
+    STATE_INNER(LiquidDelivery)
+};
+
+class Recovery : public State {
+    STATE_INNER(Recovery)
+};  
+
+class Abort : public State {
+    STATE_INNER(Abort)
+};

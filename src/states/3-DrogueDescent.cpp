@@ -11,7 +11,7 @@ State *DrogueDescent::loop_impl()
     
     if (this->currentTime > 5000)
     {
-        return (State *)new MainDescent(this->ctx);
+        return new MainDescent(ctx);
     }
     return nullptr;
 }

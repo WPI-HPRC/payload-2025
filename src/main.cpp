@@ -2,7 +2,6 @@
 
 #include "Context.h"
 #include "Wire.h"
-#include "airbrakes/AirbrakeController.h"
 #include "boilerplate/Looper/Looper.h"
 #include "boilerplate/Sensors/Sensor/Sensor.h"
 #include "boilerplate/StateEstimator/AttEkf.h"
