@@ -52,8 +52,6 @@ void XbeeProSX::loop() {
         telem_packet->magY = ctx->mag.getData()->magY;
         telem_packet->magZ = ctx->mag.getData()->magZ;
 
-        telem_packet->servoPosition = ctx->airbrakes.read();
-
         telem_packet->gpsLat = ctx->gps.getData()->lat;
         telem_packet->gpsLong = ctx->gps.getData()->lon;
         telem_packet->satellites = ctx->gps.getData()->satellites;
@@ -105,12 +103,6 @@ void XbeeProSX::handleReceivePacket(XBee::ReceivePacket::Struct *frame) {
                 HPRC_CommandResponse_setFlightMode_tag;
             tx_command_response.Message.setFlightMode.success = true;
             response_to_send = true;
-            break;
-        case HPRC_Command_actuateAirbrakes_tag:
-            Serial.printf("Servo command value: %u\n",
-                          rx_command->Message.actuateAirbrakes.servoValue);
-            ctx->airbrakes.write(
-                rx_command->Message.actuateAirbrakes.servoValue);
             break;
         case HPRC_Command_readSDDirectory_tag: {
             Serial.println("Reading SD Directory");
