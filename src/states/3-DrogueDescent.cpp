@@ -7,7 +7,7 @@ void DrogueDescent::initialize_impl()
 
 State *DrogueDescent::loop_impl()
 {
-    Serial.println("Drogue Descent looped");
+    Serial.println("Drogue Descent looped"); 
     
     if (this->currentTime > 5000)
     {

@@ -1,10 +1,10 @@
 #include "States.h"
 
-void ExtendAuger::initialize_impl() {
+void ExtendingAuger::initialize_impl() {
   Serial.println("Extend Auger initialized!");
 }
 
-State *ExtendAuger::loop_impl() {
+State *ExtendingAuger::loop_impl() {
     Serial.println("Extend Auger looped");
     
     if (this->currentTime > 5000) {

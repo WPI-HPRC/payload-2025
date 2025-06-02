@@ -8,7 +8,7 @@ State *Boost::loop_impl() {
   const auto accelData = ctx->accel.getData();
   if (accelData.getLastUpdated() != lastAccelReadingTime) {
       lastAccelReadingTime = accelData.getLastUpdated();
-      if (burnTimeDebouncer.update(abs(accelData->accelZ) > BURN_THRESHHOLD_G, //added abs for the accel!
+      if (burnTimeDebouncer.update(abs(accelData->accelZ) < BURN_THRESHHOLD_G, //added abs for the accel!
                                       ::millis()) || currentTime > MAX_BOOST_TIME) {
           return new Coast(ctx);
       }
