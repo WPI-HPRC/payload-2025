@@ -26,6 +26,7 @@ State *JudgeRighting::loop_impl() {
     // transition to appropriate state based on which side is down
     switch (groundSide) {
         case QuaternionUtils::GroundSide::BOTTOM:
+        // I WOULD LOVE TO HAVE AN IR SENSOR RN  -_-
             return new ExtendingAuger(ctx);
         case QuaternionUtils::GroundSide::LEFT:
         case QuaternionUtils::GroundSide::RIGHT:
@@ -33,7 +34,7 @@ State *JudgeRighting::loop_impl() {
         case QuaternionUtils::GroundSide::TOP:
             return new VerticalSide(ctx);
         case QuaternionUtils::GroundSide::UNKNOWN:
-            // just go to left side idek
+            // just go to left side idek... worst case scenario it fixes itself in flailing
             return new HorizontalSide(ctx);
     }
     
