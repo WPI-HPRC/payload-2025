@@ -74,10 +74,19 @@ class JudgeRighting : public State {
 
 class HorizontalSide : public State {
     STATE_INNER(HorizontalSide)
+
+    Debouncer isRotatingDebouncer = Debouncer(100); //TODO: is this too long? too short? needs checking
+    long lastGyroReadTime = 0;
+
 };
 
 class VerticalSide : public State {
     STATE_INNER(VerticalSide)
+
+    Debouncer isRotatingDebouncer = Debouncer(100); //TODO: is this too long? too short? needs checking
+    long lastGyroReadTime = 0;
+
+
 };
 
 class Flail : public State {
@@ -86,6 +95,9 @@ class Flail : public State {
 
 class Tumbling : public State {
     STATE_INNER(Tumbling)
+
+    Debouncer tumblingDebouncer = Debouncer(500);
+    long lastGyroReadTime = 0;
 };
 
 class ExtendingAuger : public State {

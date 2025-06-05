@@ -2,6 +2,8 @@
 
 #define SD_SPI_SPEED SD_SCK_MHZ(50)
 
+#include "Servo.h"
+
 #if defined(MARS)
     #include "boilerplate/Sensors/Impl/ASM330.h"
     #include "boilerplate/Sensors/Impl/ICM20948.h"

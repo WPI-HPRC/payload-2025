@@ -20,6 +20,13 @@ struct Context {
     BLA::Matrix<13, 1> quatState;
     BLA::Matrix<6,1> pvState; 
 
+    //Servos
+    Servo vertFlap;
+    Servo horzFlap;
+
+    // flags
+    bool inBush = false; // if i was the only one looking at this code i would name this: its_so_over = t/f
+
     void logCsvHeader() {
         logFile.print("timestamp,");
         baro.logCsvHeader(logFile);

@@ -7,6 +7,7 @@ void JudgeRighting::initialize_impl() {
 
 // Define pos z as facing towards cone of rocket, pos y as facing top side (bottom side is where the drill extends to), pos x towards the right side (Looking up the payload towards the cone of the rocket)
 // FIX: change the axis to the quaternion one from the ekf
+// TODO: recheck the quaternion value to make sure its updated
 State *JudgeRighting::loop_impl() {
     // get rotation matrix from quat
     BLA::Matrix<3,3> rot = QuaternionUtils::quatToRot(ctx->quatState);
