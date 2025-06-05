@@ -23,6 +23,7 @@ enum StateId {
     ID_Drill,
     ID_SolidDelivery,
     ID_LiquidDelivery,
+    ID_SolidEjection,
     ID_Recovery,
     ID_Abort
 };
@@ -89,10 +90,6 @@ class VerticalSide : public State {
 
 };
 
-class Flail : public State {
-    STATE_INNER(Flail)
-};
-
 class Tumbling : public State {
     STATE_INNER(Tumbling)
 
@@ -108,16 +105,16 @@ class FullyExtendedDrilling  : public State {
     STATE_INNER(FullyExtendedDrilling)
 };
 
-class Drill : public State {
-    STATE_INNER(Drill)
-};
-
 class SolidDelivery : public State {
     STATE_INNER(SolidDelivery)
 };
 
 class LiquidDelivery : public State {
     STATE_INNER(LiquidDelivery)
+};
+
+class SolidEjection : public State {
+    STATE_INNER(SolidEjection)
 };
 
 class Recovery : public State {

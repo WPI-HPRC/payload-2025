@@ -7,8 +7,10 @@ void SolidDelivery::initialize_impl() {
 State *SolidDelivery::loop_impl() {
     Serial.println("Solid Delivery looped");
     
-    if (this->currentTime > 5000) {
-        return (State *)new LiquidDelivery(this->ctx);
+    ctx->SolidDeliveryDoorServo.write(SOLID_DELIVERY_DOOR_OPEN_POS);
+
+    if (this->currentTime > MAX_SOLID_DOOR_OPEN_TIME) {
+        return new SolidEjection(ctx);
     }
     return nullptr;
 }

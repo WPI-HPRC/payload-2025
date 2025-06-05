@@ -8,7 +8,7 @@ State *ExtendingAuger::loop_impl() {
     Serial.println("Extend Auger looped");
     // no way to know if we are touching the ground w/o current sensing so imma j keep running this thing into the ground at full force until timer stop
 
-    ctx->augerExtServo.write(AUGER_MAX_EXT_POST);
+    ctx->augerExtServo.write(AUGER_MAX_EXT_POS);
 
     //bc we want the drill to spin at a constant vel
 
@@ -17,7 +17,7 @@ State *ExtendingAuger::loop_impl() {
     // ControlSpeed(ctx->drillServo, DRILL_SPEED);
 
 
-    if (abs((long)(ctx->augerExtServo.read() - AUGER_MAX_EXT_POST)) < AUGER_EXT_POS_BAND // we reached max extension
+    if (abs((long)(ctx->augerExtServo.read() - AUGER_MAX_EXT_POS)) < AUGER_EXT_POS_BAND // we reached max extension
         || this->currentTime > MAX_AUG_EXT_TIME//max extension couldn't be reached. probably drilling into a rock
         ) {
       return new FullyExtendedDrilling(ctx);

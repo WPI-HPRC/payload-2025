@@ -25,7 +25,8 @@ struct Context {
     Servo horzFlapServo;
     Servo augerExtServo;
     Servo drillServo;
-    Servo SolidDeliveryServo;
+    Servo SolidDeliveryDoorServo;
+    Servo SolidEjectionServo;
     Servo LiquidDeliveryServo;
 
     // flags
