@@ -10,8 +10,8 @@ void JudgeRighting::initialize_impl() {
 // TODO: recheck the quaternion value to make sure its updated
 State *JudgeRighting::loop_impl() {
     //just in case flaps aren't closed:
-    ctx->vertFlap.write(FLAP_RETRACTED_POS);
-    ctx->horzFlap.write(FLAP_RETRACTED_POS);
+    ctx->vertFlapServo.write(FLAP_RETRACTED_POS);
+    ctx->horzFlapServo.write(FLAP_RETRACTED_POS);
 
 
     // get rotation matrix from quat

@@ -6,8 +6,8 @@ void Tumbling::initialize_impl() {
  
 State *Tumbling::loop_impl() {
     //if we came here from VerticalSide or HorizontalSide then we need to close the flaps
-    ctx->vertFlap.write(FLAP_RETRACTED_POS);
-    ctx->horzFlap.write(FLAP_RETRACTED_POS);
+    ctx->vertFlapServo.write(FLAP_RETRACTED_POS);
+    ctx->horzFlapServo.write(FLAP_RETRACTED_POS);
 
 
     // talk w colette here about using the gyro... iirc from rbe2002 the gyro has a ton of bias so numerically integrating it to find the current gyro velocity shouldn't work and i need to use the ekf? lowk i dont remember...

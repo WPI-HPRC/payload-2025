@@ -6,7 +6,7 @@ void VerticalSide::initialize_impl() {
 
 State *VerticalSide::loop_impl() {
     Serial.println("Vertical Side looped");
-    ctx->vertFlap.write(FLAP_EXTENDED_POS); //money buys pid :) i love axons
+    ctx->vertFlapServo.write(FLAP_EXTENDED_POS); //money buys pid :) i love axons
 
     const auto gyroData = ctx->accel.getData();
     if (gyroData.getLastUpdated() != lastGyroReadTime) {
@@ -19,7 +19,7 @@ State *VerticalSide::loop_impl() {
 
     //if we are stuck flapping and we aren't rotating then we are in a bush bruh... BEGIN FLAILING BC ITS SO OVER
     if (this->currentTime > MAX_TRY_BEFORE_FLAIL_TIME) {
-      if (ctx->inBushTimesFlailed < 4) {
+      if (ctx->inBushTimesFlailed < MAX_FLAIL_ATTEMPTS) {
         ctx->inBushTimesFlailed += 1;
         return new HorizontalSide(ctx);
       }

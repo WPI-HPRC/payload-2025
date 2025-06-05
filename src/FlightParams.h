@@ -10,6 +10,14 @@ constexpr float IS_END_TUMBLING_VEL_THRESHOLD = 0.02; //made up number... lower 
 constexpr uint32_t MAX_BOOST_TIME = 10000;
 constexpr uint32_t MAX_TUMBLE_TIME = 300000; // 5 minutes
 constexpr uint32_t MAX_TRY_BEFORE_FLAIL_TIME = 30000; // 30 seconds
+constexpr uint32_t MAX_AUG_EXT_TIME = 120000; //2 minute
+constexpr uint32_t MAX_DRILL_TIME = 60000; //1 minute
+
+constexpr uint8_t MAX_FLAIL_ATTEMPTS = 4;
 
 constexpr uint32_t FLAP_EXTENDED_POS = 1500; //in PWM for fully extended flap
 constexpr uint32_t FLAP_RETRACTED_POS = 1000; //in PWM for fully retracted flap
+constexpr uint32_t AUGER_MAX_EXT_POST = 1500; //in PWM
+constexpr u_int32_t AUGER_EXT_POS_BAND =  50;
+
+constexpr uint32_t DRILL_SPEED = 0.5; //im guessing m/s?
