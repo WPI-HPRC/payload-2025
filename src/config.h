@@ -27,9 +27,6 @@
     #define SENSOR_SCL PB6
     #define SENSOR_SDA PB7
 
-    #define AIRBRAKE_SERVO_PIN PF1
-    #define AIRBRAKE_FEEDBACK_PIN PF3
-
     #define SERVO_MIN 1395
     #define SERVO_MAX 1660
 
@@ -53,8 +50,6 @@
     #define SENSOR_SCL 19
     #define SENSOR_SDA 18
 
-    #define AIRBRAKE_SERVO_PIN 7
-    #define AIRBRAKE_FEEDBACK_PIN 20
     
     #define LED_PIN 6
 #endif
