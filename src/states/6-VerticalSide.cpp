@@ -11,10 +11,22 @@ State *VerticalSide::loop_impl() {
     const auto gyroData = ctx->accel.getData();
     if (gyroData.getLastUpdated() != lastGyroReadTime) {
         lastGyroReadTime = gyroData.getLastUpdated();
-        if (isRotatingDebouncer.update(abs(gyroData->gyrZ) < BURN_THRESHHOLD_G, //TODO: check that axis is correct
+        if (isRotatingDebouncer.update(abs(gyroData->gyrZ) > IS_TUMBLING_VEL_THRESHOLD, //TODO: check that axis is correct
                                         ::millis())) {
-            return new JudgeRighting(ctx);
+            return new Tumbling(ctx);
         }
+    }
+
+    //if we are stuck flapping and we aren't rotating then we are in a bush bruh... BEGIN FLAILING BC ITS SO OVER
+    if (this->currentTime > MAX_TRY_BEFORE_FLAIL_TIME) {
+      if (ctx->inBushTimesFlailed < 4) {
+        ctx->inBushTimesFlailed += 1;
+        return new HorizontalSide(ctx);
+      }
+      else { //ik i dont need an else here but i like readability
+        //we've reached max flail tries on both sets of flaps so we give up
+        return new SolidDelivery(ctx);
+      }
     }
 
 

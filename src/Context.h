@@ -25,7 +25,7 @@ struct Context {
     Servo horzFlap;
 
     // flags
-    bool inBush = false; // if i was the only one looking at this code i would name this: its_so_over = t/f
+    bool inBushTimesFlailed = 0; // if i was the only one looking at this code i would name this: its_so_over = t/f... when we get to 4 times flailed then we give up
 
     void logCsvHeader() {
         logFile.print("timestamp,");

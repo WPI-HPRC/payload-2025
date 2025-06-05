@@ -9,6 +9,11 @@ void JudgeRighting::initialize_impl() {
 // FIX: change the axis to the quaternion one from the ekf
 // TODO: recheck the quaternion value to make sure its updated
 State *JudgeRighting::loop_impl() {
+    //just in case flaps aren't closed:
+    ctx->vertFlap.write(FLAP_RETRACTED_POS);
+    ctx->horzFlap.write(FLAP_RETRACTED_POS);
+
+
     // get rotation matrix from quat
     BLA::Matrix<3,3> rot = QuaternionUtils::quatToRot(ctx->quatState);
     
