@@ -15,7 +15,7 @@ State *JudgeRighting::loop_impl() {
 
 
     // get rotation matrix from quat
-    BLA::Matrix<3,3> rot = QuaternionUtils::quatToRot(ctx->quatState);
+    BLA::Matrix<3,3> rot = QuaternionUtils::quatToRot(ctx->attEkfLogger.getState());
     
     // get which side is on the ground
     QuaternionUtils::GroundSide groundSide = QuaternionUtils::getGroundSide(rot);

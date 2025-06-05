@@ -1,6 +1,8 @@
 #pragma once
 
 #include "BasicLinearAlgebra.h"
+#include "boilerplate/StateEstimator/AttEkf.h"
+#include "boilerplate/StateEstimator/PVKF.h"
 #include "config.h"
 
 struct Context {
@@ -17,8 +19,8 @@ struct Context {
     MAX10S gps;
     File logFile;
     bool flightMode;
-    BLA::Matrix<13, 1> quatState;
-    BLA::Matrix<6,1> pvState; 
+    AttEkfLogger attEkfLogger;
+    PVEkfLogger pvKFLogger;
 
     //Servos
     Servo vertFlapServo;
@@ -41,6 +43,10 @@ struct Context {
         mag.logCsvHeader(logFile);
         logFile.print(",");
         gps.logCsvHeader(logFile);
+        logFile.print(",");
+        attEkfLogger.logCsvHeader(logFile);
+        logFile.print(",");
+        pvKFLogger.logCsvHeader(logFile);
         logFile.println();
     }
 };

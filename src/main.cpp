@@ -6,6 +6,7 @@
 #include "boilerplate/Sensors/Sensor/Sensor.h"
 #include "boilerplate/StateEstimator/AttEkf.h"
 #include "boilerplate/StateEstimator/PVKF.h"
+#include "boilerplate/Utilities/SDSerialInterface.h"
 #include "states/States.h"
 #include <SPI.h>
 #include <boilerplate/Sensors/SensorManager/SensorManager.h>
@@ -35,6 +36,8 @@ Context ctx = {
 #endif
     .gps = MAX10S(),
     .flightMode = false,
+    .attEkfLogger = AttEkfLogger(),
+    .pvKFLogger = PVEkfLogger(),
 };
 
 XbeeProSX xbee = XbeeProSX(&ctx, XBEE_CS, XBEE_ATTN, GROUNDSTATION_XBEE_ADDRESS,
@@ -47,10 +50,9 @@ SensorManager sensorManager(sensors, millis);
 StateMachine stateMachine((State *)new PreLaunch(&ctx));
 
 AttStateEstimator quatEkf(ctx.mag.getData(), 0.025);
-PVStateEstimator pvKF(ctx.baro.getData(), ctx.mag.getData(), ctx.gps.getData(), ctx.gps, 0.025);
+PVStateEstimator pvKF(ctx.baro.getData(), ctx.mag.getData(), ctx.gps.getData(), 0.025);
 
 bool sd_initialized = false;
-bool state = true;
 
 // Outputs the bits in the byte `data` in MSB order over `pin`
 void output_byte(uint8_t data, uint pin) {
@@ -96,6 +98,13 @@ void setup() {
 
     digitalWrite(PE0, digitalRead(PA3));
     digitalWrite(PE1, digitalRead(PC4));
+
+    pinMode(PC12, INPUT_PULLDOWN);
+
+    if (digitalRead(PC12) == HIGH) {
+        setupSDInterface(&ctx);
+        return;
+    }
 #endif
     Serial.begin(9600);
 
@@ -174,6 +183,8 @@ void mainLoop() {
     static uint32_t lastAccelDataLogged = 0;
     static uint32_t lastMagDataLogged = 0;
     static uint32_t lastGpsDataLogged = 0;
+    static uint32_t lastAttKfDataLogged = 0;
+    static uint32_t lastPVKfDataLogged = 0;
 
 #if defined(MARS)
     digitalWrite(PE0, digitalRead(PA3));
@@ -186,41 +197,42 @@ void mainLoop() {
     if (sd_initialized && ctx.logFile) {
         ctx.logFile.print(millis());
         ctx.logFile.print(",");
-        if (lastBaroDataLogged < ctx.baro.getLastTimePolled()) {
-            lastBaroDataLogged = ctx.baro.getLastTimePolled();
-            ctx.baro.logCsvRow(ctx.logFile);
-        }
+
+        lastBaroDataLogged = ctx.baro.logCsvRow(ctx.logFile, lastBaroDataLogged);
         ctx.logFile.print(",");
-        if (lastAccelDataLogged < ctx.accel.getLastTimePolled()) {
-            lastAccelDataLogged = ctx.accel.getLastTimePolled();
-            ctx.accel.logCsvRow(ctx.logFile);
-        }
+
+        lastAccelDataLogged = ctx.accel.logCsvRow(ctx.logFile, lastAccelDataLogged);
         ctx.logFile.print(",");
-        if (lastMagDataLogged < ctx.mag.getLastTimePolled()) {
-            lastMagDataLogged = ctx.mag.getLastTimePolled();
-            ctx.mag.logCsvRow(ctx.logFile);
-        }
+
+        lastMagDataLogged = ctx.mag.logCsvRow(ctx.logFile, lastMagDataLogged);
         ctx.logFile.print(",");
-        if (lastGpsDataLogged < ctx.gps.getLastTimePolled()) {
-            lastGpsDataLogged = ctx.gps.getLastTimePolled();
-            ctx.gps.logCsvRow(ctx.logFile);
-        }
-        ctx.logFile.println();
+
+        lastGpsDataLogged = ctx.gps.logCsvRow(ctx.logFile, lastGpsDataLogged);
+        ctx.logFile.print(",");
+
+        lastAttKfDataLogged =
+            ctx.attEkfLogger.logCsvRow(ctx.logFile, lastAttKfDataLogged);
+        ctx.logFile.print(",");
+
+        lastPVKfDataLogged =
+            ctx.pvKFLogger.logCsvRow(ctx.logFile, lastPVKfDataLogged);
+        ctx.logFile.println();        
     }
 }
 
 void xbeeLoop() { xbee.loop(); }
 
 void EKFLoop() {
+    static TimedPointer<MAX10SData> gpsData = ctx.gps.getData();
+    static TimedPointer<LPS22Data> baroData = ctx.baro.getData();
     static bool attEkfInitialized = false;
-    static bool pvInit = false;
+    static bool pvInitialized = false;
 
-    if(attEkfInitialized && !pvInit){
-        TimedPointer<MAX10SData> gpsData = ctx.gps.getData(); 
-        TimedPointer<LPS22Data> baroData = ctx.baro.getData(); 
-        BLA::Matrix<6,1> initialPV = {gpsData->lat, gpsData->lon, baroData->altitude, 0, 0, 0}; 
-        pvKF.init(initialPV, ctx.quatState); 
-        pvInit = true; 
+    if (attEkfInitialized && !pvInitialized &&
+        (gpsData->gpsLockType == 3 || gpsData->gpsLockType == 2)) {
+        BLA::Matrix<6, 1> initialPV = {(float)gpsData->lat, (float)gpsData->lon, baroData->altitude, 0, 0, 0};
+        pvKF.init(initialPV, ctx.attEkfLogger.getState());
+        pvInitialized = true;
     }
 
     if (!attEkfInitialized) {
@@ -229,29 +241,41 @@ void EKFLoop() {
     }
 
     auto x = quatEkf.onLoop(stateMachine.getCurrentStateId() == ID_PreLaunch);
-    auto pv = pvKF.onLoop(); 
+
+    if (pvInitialized) {
+        auto pv = pvKF.onLoop();
+        noInterrupts();
+        ctx.pvKFLogger.newState(pv);
+        interrupts();
+    }
 
     // disabling interrupts here may not be necessary, but it guarantees we
     // don't read context from the high priority interrupt in an invalid state,
     // since that one can preempt this one.
     noInterrupts();
-    ctx.quatState = x;
-    //ctx.pvState = pv; 
+    ctx.attEkfLogger.newState(x);
     interrupts();
 }
 
 void loggingLoop() {
-    ctx.accel.debugPrint(Serial);
-    ctx.baro.debugPrint(Serial);
-    ctx.gps.debugPrint(Serial);
-    ctx.mag.debugPrint(Serial);
+    if (ctx.flightMode) return;
+    
+    static bool ledState = true;
+
+    Serial.println(millis());
+    ctx.accel.debugLog(Serial);
+    ctx.baro.debugLog(Serial);
+    ctx.gps.debugLog(Serial);
+    ctx.mag.debugLog(Serial);
+    ctx.attEkfLogger.debugLog(Serial);
+    ctx.pvKFLogger.debugLog(Serial);
 
     if (sd_initialized && ctx.logFile) {
-        state = !state;
+        ledState = !ledState;
     }
-    digitalWrite(LED_PIN, state);
+    digitalWrite(LED_PIN, ledState);
 }
 
 void occasionalLoop() { ctx.logFile.flush(); }
 
-void loop() {}
+void loop() { handleSDInterface(&ctx); }
