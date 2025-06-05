@@ -6,9 +6,9 @@ void Recovery::initialize_impl() {
 
 State *Recovery::loop_impl() {
     Serial.println("Recovery looped");
-    
-    if (this->currentTime > 5000) {
-        return (State *)new Abort(this->ctx);
-    }
+
+    // CLOSE EVERYTHING AND WAIT FOR RECOVERY
+    ctx->augerExtServo.write(AUGER_MAX_CLOSED_POS); 
+    ctx->SolidDeliveryDoorServo.write(SOLID_DELIVERY_DOOR_CLOSED_POS); 
     return nullptr;
 }
