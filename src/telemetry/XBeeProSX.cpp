@@ -13,12 +13,12 @@ XbeeProSX::XbeeProSX(Context *ctx, uint8_t cs_pin, uint8_t attn_pin,
     : XBeeDevice(SerialInterface::SPI), ctx(ctx), _cs_pin(cs_pin),
       _attn_pin(attn_pin), gs_addr(gs_addr), spi_dev(spi_dev),
       send_delay(send_delay),
-      telem_packet(&final_telem_packet.Message.rocketPacket),
+      telem_packet(&final_telem_packet.Message.payloadPacket),
       rx_command(&rx_packet.Message.command) {
     sendTransmitRequestsImmediately = true;
     sendFramesImmediately = true;
 
-    final_telem_packet.which_Message = HPRC_Telemetry_rocketPacket_tag;
+    final_telem_packet.which_Message = HPRC_Telemetry_payloadPacket_tag;
 }
 
 void XbeeProSX::start() {
@@ -86,11 +86,6 @@ void XbeeProSX::handleReceivePacket(XBee::ReceivePacket::Struct *frame) {
     if (ctx->flightMode) {
         return;
     }
-
-    for (int i = 0; i < frame->dataLength_bytes; i++) {
-        Serial.printf("0x%x ", frame->data[i]);
-    }
-    Serial.println();
 
     istream = pb_istream_from_buffer(frame->data, frame->dataLength_bytes);
     if (pb_decode(&istream, &HPRC_Packet_msg, &rx_packet)) {

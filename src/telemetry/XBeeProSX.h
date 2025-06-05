@@ -52,7 +52,7 @@ class XbeeProSX : public XBeeDevice {
 
     HPRC_Packet final_packet;
     HPRC_Telemetry final_telem_packet;
-    HPRC_RocketTelemetryPacket *telem_packet;
+    HPRC_PayloadTelemetryPacket *telem_packet;
 
     HPRC_Packet rx_packet;
     HPRC_Command *rx_command;
