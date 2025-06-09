@@ -4,14 +4,19 @@ void PreLaunch::initialize_impl() {
   Serial.println("PreLaunch initialized!");
 }
 
-//TODO: Try using a rolling average to measure the gyro bias... could potentially make the bias +- milli rad /s
+//TODO: Test Rolling Average for GyroBias
+
+//FIXME: Make everything mag instead of accel (all classes)
 
 State *PreLaunch::loop_impl() {
-  const auto accelData = ctx->accel.getData();
-  if (accelData.getLastUpdated() != lastAccelReadingTime) {
-      lastAccelReadingTime = accelData.getLastUpdated();
-      if (launchAccelDebouncer.update(abs(accelData->accelZ) > LAUNCH_THRESHHOLD_G, //added abs for the accel!
+
+  const auto magData = ctx->mag.getData();
+  if (magData.getLastUpdated() != lastAccelReadingTime) {
+      gyZBiasAvg.update(magData->gyrZ);
+      lastAccelReadingTime = magData.getLastUpdated();
+      if (launchAccelDebouncer.update(abs(magData->accelZ) > LAUNCH_THRESHHOLD_G, //added abs for the accel!
                                       ::millis())) {
+          ctx->gyZBias = gyZBiasAvg.getAvg();
           return new Coast(ctx);
       }
   }

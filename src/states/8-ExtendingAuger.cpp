@@ -17,7 +17,7 @@ State *ExtendingAuger::loop_impl() {
     // ControlSpeed(ctx->drillServo, DRILL_SPEED);
 
 
-    if (abs((long)(ctx->augerExtServo.read() - AUGER_MAX_EXT_POS)) < AUGER_EXT_POS_BAND // we reached max extension
+    if (std::abs((long)(ctx->augerExtServo.read() - AUGER_MAX_EXT_POS)) < AUGER_EXT_POS_BAND // we reached max extension
         || this->currentTime > MAX_AUG_EXT_TIME//max extension couldn't be reached. probably drilling into a rock
         ) {
       return new FullyExtendedDrilling(ctx);

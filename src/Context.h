@@ -22,6 +22,7 @@ struct Context {
     bool flightMode;
     AttEkfLogger attEkfLogger;
     PVEkfLogger pvKFLogger;
+    double gyZBias; 
 
     //Servos
     Servo vertFlapServo;

@@ -17,7 +17,7 @@ State *Tumbling::loop_impl() {
     if (gyroData.getLastUpdated() != lastGyroReadTime) {
         lastGyroReadTime = gyroData.getLastUpdated();
         // TODO: DO TESTING TO ACCOUNT FOR BIAS
-        if (tumblingDebouncer.update(abs(gyroData->gyrZ) < IS_END_TUMBLING_VEL_THRESHOLD, //TODO: check that axis is correct
+        if (tumblingDebouncer.update(std::abs(gyroData->gyrZ - ctx->gyZBias) < IS_END_TUMBLING_VEL_THRESHOLD, //TODO: check that axis is correct
                                         ::millis())) {
             return new JudgeRighting(ctx);
         }

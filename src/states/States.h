@@ -4,6 +4,8 @@
 #include "../boilerplate/StateMachine/State.h"
 #include "../boilerplate/StateMachine/StateMachine.h"
 #include "../boilerplate/Utilities/Debouncer.h"
+#include "../boilerplate/Utilities/RunningExpAverage.h"
+#include "../boilerplate/Utilities/MultipleStateDebouncer.h"
 #include "FlightParams.h"
 #include <Arduino.h>
 
@@ -42,6 +44,8 @@ class PreLaunch : public State {
 
     Debouncer launchAccelDebouncer = Debouncer(500);
     long lastAccelReadingTime = 0;
+
+    RunningExpAverage<double> gyZBiasAvg = RunningExpAverage(0.1);
 };
 
 class Coast : public State {
@@ -67,6 +71,20 @@ class Descent : public State {
 
 class JudgeRighting : public State {
     STATE_INNER(JudgeRighting)
+
+    // Enum to represent which side is on the ground
+    enum class GroundSide { //FIXME: Check axis
+        TOP,        // Y+ side down
+        BOTTOM,     // Y- side down
+        LEFT,       // X- side down
+        RIGHT,      // X+ side down
+        UNKNOWN     // No side is clearly down
+    };
+
+    MultipleStateDebouncer<GroundSide> judgeRightingDebouncer = MultipleStateDebouncer<GroundSide>(500, 4, GroundSide::UNKNOWN); //TODO: check debouncer timings
+    long lastMagReadTime = 0;
+
+    GroundSide getGroundSide(const float& accelX, const float& accelY);
 };
 
 class HorizontalSide : public State {
