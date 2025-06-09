@@ -30,6 +30,12 @@
     #define SERVO_MIN 1395
     #define SERVO_MAX 1660
 
+    #define AXON_MIN 1395
+    #define AXON_MAX 1660
+    #define AXON_KP 0.1
+    #define AXON_KI 0.1
+    #define AXON_KD 0.1
+
     #define LED_PIN PB9
 #elif defined(POLARIS)
     #include "boilerplate/Sensors/Impl/MAX10S.h"

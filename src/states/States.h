@@ -6,6 +6,7 @@
 #include "../boilerplate/Utilities/Debouncer.h"
 #include "../boilerplate/Utilities/RunningExpAverage.h"
 #include "../boilerplate/Utilities/MultipleStateDebouncer.h"
+#include "../boilerplate/Utilities/PIDController.h"
 #include "FlightParams.h"
 #include <Arduino.h>
 
@@ -85,6 +86,8 @@ class JudgeRighting : public State {
     long lastMagReadTime = 0;
 
     GroundSide getGroundSide(const float& accelX, const float& accelY);
+
+    PIDController FlapController = PIDController(AXON_KP, AXON_KI, AXON_KD, AXON_MIN, AXON_MAX);
 };
 
 class HorizontalSide : public State {
@@ -92,6 +95,8 @@ class HorizontalSide : public State {
 
     Debouncer isRotatingDebouncer = Debouncer(100); //TODO: is this too long? too short? needs checking
     long lastGyroReadTime = 0;
+
+    PIDController FlapController = PIDController(AXON_KP, AXON_KI, AXON_KD, AXON_MIN, AXON_MAX);
 
 };
 
@@ -101,6 +106,8 @@ class VerticalSide : public State {
     Debouncer isRotatingDebouncer = Debouncer(100); //TODO: is this too long? too short? needs checking
     long lastGyroReadTime = 0;
 
+    PIDController FlapController = PIDController(AXON_KP, AXON_KI, AXON_KD, AXON_MIN, AXON_MAX);
+
 
 };
 
@@ -109,6 +116,8 @@ class Tumbling : public State {
 
     Debouncer tumblingDebouncer = Debouncer(500);
     long lastGyroReadTime = 0;
+
+    PIDController FlapController = PIDController(AXON_KP, AXON_KI, AXON_KD, AXON_MIN, AXON_MAX);
 };
 
 class ExtendingAuger : public State {
@@ -133,6 +142,8 @@ class SolidEjection : public State {
 
 class Recovery : public State {
     STATE_INNER(Recovery)
+
+    PIDController FlapController = PIDController(AXON_KP, AXON_KI, AXON_KD, AXON_MIN, AXON_MAX);
 };  
 
 class Abort : public State {
