@@ -14,7 +14,7 @@ State *PreLaunch::loop_impl() {
   if (magData.getLastUpdated() != lastAccelReadingTime) {
       gyZBiasAvg.update(magData->gyrZ);
       lastAccelReadingTime = magData.getLastUpdated();
-      if (launchAccelDebouncer.update(abs(magData->accelZ) > LAUNCH_THRESHHOLD_G, //added abs for the accel!
+      if (launchAccelDebouncer.update(std::abs(magData->accelZ) > LAUNCH_THRESHHOLD_G, //added abs for the accel!
                                       ::millis())) {
           ctx->gyZBias = gyZBiasAvg.getAvg();
           return new Coast(ctx);
