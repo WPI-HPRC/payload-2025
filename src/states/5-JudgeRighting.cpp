@@ -13,6 +13,7 @@ State *JudgeRighting::loop_impl() {
     ctx->vertFlapServo.write(FLAP_RETRACTED_POS);
     ctx->horzFlapServo.write(FLAP_RETRACTED_POS);
 
+    //FIXME: Implement atan2 solution using x and y vals of accel for gravity to find angle
 
     // get rotation matrix from quat
     BLA::Matrix<3,3> rot = QuaternionUtils::quatToRot(ctx->attEkfLogger.getState());

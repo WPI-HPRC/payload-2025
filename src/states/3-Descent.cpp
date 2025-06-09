@@ -1,20 +1,19 @@
 #include "States.h"
 
-void Coast::initialize_impl() {
+void Descent::initialize_impl() {
   prevAltitude = this->ctx->baro.getData()->altitude;
 }
 
-State *Coast::loop_impl() {
-
+State *Descent::loop_impl() {
   const auto baroData = ctx->baro.getData();
 
-  if (lastBaroReadingTime != baroData.getLastUpdated()) {
+  if (lastBaroReadingTime < baroData.getLastUpdated()) {
     lastBaroReadingTime = baroData.getLastUpdated();
 
     if (firstVelCalculated) {
       avgBaroVel = alpha * (baroData->altitude - prevAltitude) * this->deltaTime / 1000. + (1 - alpha) * avgBaroVel;
-      if (coastVelDebouncer.update(std::abs(avgBaroVel) < APOGEE_VEL_THRESHHOLD, ::millis())) {
-        return new Descent(this->ctx);
+      if (std::abs(avgBaroVel) < LANDED_VEL_THRESHHOLD) {
+        return new Tumbling(this->ctx);
       }
     } else {
       avgBaroVel = (baroData->altitude - prevAltitude) * this->deltaTime / 1000.;
@@ -22,9 +21,10 @@ State *Coast::loop_impl() {
     }
   }
 
-  if (this->currentTime >= COAST_MAX_TIME) {
-    ctx->errorLogFile.printf("[%d] Coast state timed out\n", ::millis());
-    return new Descent(this->ctx);
+  if (this->currentTime >= MAIN_DESCENT_MAX_TIME) {
+    ctx->errorLogFile.printf("[%d] MainDescent state timed out\n", ::millis());
+    return new Tumbling(this->ctx);
   }
+  
   return nullptr;
 }

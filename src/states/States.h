@@ -9,10 +9,8 @@
 
 enum StateId {
     ID_PreLaunch,
-    ID_Boost,
     ID_Coast,
-    ID_DrogueDescent,
-    ID_MainDescent,
+    ID_Descent,
     ID_JudgeRighting,
     ID_HorizontalSide,
     ID_VerticalSide,
@@ -46,27 +44,25 @@ class PreLaunch : public State {
     long lastAccelReadingTime = 0;
 };
 
-class Boost : public State {
-    STATE_INNER(Boost)
-
-    Debouncer burnTimeDebouncer = Debouncer(500);
-    long lastAccelReadingTime = 0;
-};
-
 class Coast : public State {
     STATE_INNER(Coast)
 
+    constexpr static float alpha = 0.1; // smoothing coefficient. 0 <= alpha <= 1. Values near 0 prioritize old values (more smoothing) and values near 1 prioritize new values (less smoothing).
+    bool firstVelCalculated = false;
     float prevAltitude = 0;
+    float avgBaroVel = 0;
+    Debouncer coastVelDebouncer = Debouncer(100);
+    uint32_t lastBaroReadingTime = 0;
 };
 
-class DrogueDescent : public State {
-    STATE_INNER(DrogueDescent)
+class Descent : public State {
+    STATE_INNER(Descent)
 
+    constexpr static float alpha = 0.3; // smoothing coefficient. 0 <= alpha <= 1. Values near 0 prioritize old values (more smoothing) and values near 1 prioritize new values (less smoothing).
     float prevAltitude = 0;
-};
-
-class MainDescent : public State {
-    STATE_INNER(MainDescent)
+    bool firstVelCalculated = false;
+    float avgBaroVel = 0;
+    uint32_t lastBaroReadingTime = 0;
 };
 
 class JudgeRighting : public State {

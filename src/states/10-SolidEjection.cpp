@@ -11,6 +11,7 @@ State* SolidEjection::loop_impl() {
 
 
     if (this->currentTime > MAX_SOLID_EJECTION_TIME) {
+        //FIXME: Turn on solenoids here
         return new LiquidDelivery(ctx);
     }
     return nullptr;

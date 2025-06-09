@@ -18,6 +18,7 @@ struct Context {
 #endif
     MAX10S gps;
     File logFile;
+    File errorLogFile;
     bool flightMode;
     AttEkfLogger attEkfLogger;
     PVEkfLogger pvKFLogger;

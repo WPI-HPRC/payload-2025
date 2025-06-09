@@ -11,7 +11,7 @@ State *VerticalSide::loop_impl() {
     const auto gyroData = ctx->accel.getData();
     if (gyroData.getLastUpdated() != lastGyroReadTime) {
         lastGyroReadTime = gyroData.getLastUpdated();
-        if (isRotatingDebouncer.update(abs(gyroData->gyrZ) > IS_TUMBLING_VEL_THRESHOLD, //TODO: check that axis is correct
+        if (isRotatingDebouncer.update(std::abs(gyroData->gyrZ) > IS_TUMBLING_VEL_THRESHOLD, //TODO: check that axis is correct
                                         ::millis())) {
             return new Tumbling(ctx);
         }
