@@ -8,7 +8,7 @@ State *HorizontalSide::loop_impl() {
   Serial.println("Horizontal Side looped");
   ctx->horzFlapServo.write(FLAP_EXTENDED_POS); //money buys pid :) i love axons
 
-  const auto gyroData = ctx->accel.getData();
+  const auto gyroData = ctx->mag.getData();
   if (gyroData.getLastUpdated() != lastGyroReadTime) {
       lastGyroReadTime = gyroData.getLastUpdated();
       if (isRotatingDebouncer.update(std::abs(gyroData->gyrZ - ctx->gyZBias) > IS_TUMBLING_VEL_THRESHOLD, //TODO: check that axis is correct

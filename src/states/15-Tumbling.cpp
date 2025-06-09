@@ -13,7 +13,7 @@ State *Tumbling::loop_impl() {
     // talk w colette here about using the gyro... iirc from rbe2002 the gyro has a ton of bias so numerically integrating it to find the current gyro velocity shouldn't work and i need to use the ekf? lowk i dont remember...
     // or does the gyro measure angular velocity because in that case it works perfect lol and im being dumb... now that i think abouot it, i think im dumb!
 
-    const auto gyroData = ctx->accel.getData();
+    const auto gyroData = ctx->mag.getData();
     if (gyroData.getLastUpdated() != lastGyroReadTime) {
         lastGyroReadTime = gyroData.getLastUpdated();
         // TODO: DO TESTING TO ACCOUNT FOR BIAS

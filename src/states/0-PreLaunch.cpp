@@ -6,8 +6,6 @@ void PreLaunch::initialize_impl() {
 
 //TODO: Test Rolling Average for GyroBias
 
-//FIXME: Make everything mag instead of accel (all classes)
-
 State *PreLaunch::loop_impl() {
 
   const auto magData = ctx->mag.getData();
