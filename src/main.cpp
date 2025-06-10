@@ -40,12 +40,13 @@ Context ctx = {
     .flightMode = false,
     .attEkfLogger = AttEkfLogger(),
     .pvKFLogger = PVEkfLogger(),
+    .xbeeLoggingDelay = 50,
     .vertFlapServo = AxonController(AXON_VER_OUT_PIN, AXON_VER_IN_PIN, AXON_KP, AXON_KI, AXON_KD, AXON_VER_OUT_MIN, AXON_VER_OUT_MAX),
     .horzFlapServo = AxonController(AXON_HOR_OUT_PIN, AXON_HOR_IN_PIN, AXON_KP, AXON_KI, AXON_KD, AXON_HOR_OUT_MIN, AXON_HOR_OUT_MAX)
 };
 
 XbeeProSX xbee = XbeeProSX(&ctx, XBEE_CS, XBEE_ATTN, GROUNDSTATION_XBEE_ADDRESS,
-                           &xbee_spi, 0);
+                           &xbee_spi);
 
 Sensor *sensors[] = {&ctx.accel, &ctx.baro, &ctx.gps, &ctx.mag};
 
