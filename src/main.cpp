@@ -39,10 +39,11 @@ Context ctx = {
     .flightMode = false,
     .attEkfLogger = AttEkfLogger(),
     .pvKFLogger = PVEkfLogger(),
+    .xbeeLoggingDelay = 50,
 };
 
 XbeeProSX xbee = XbeeProSX(&ctx, XBEE_CS, XBEE_ATTN, GROUNDSTATION_XBEE_ADDRESS,
-                           &xbee_spi, 0);
+                           &xbee_spi);
 
 Sensor *sensors[] = {&ctx.accel, &ctx.baro, &ctx.gps, &ctx.mag};
 

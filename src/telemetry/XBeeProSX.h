@@ -14,7 +14,7 @@
 class XbeeProSX : public XBeeDevice {
   public:
     XbeeProSX(Context *ctx, uint8_t cs_pin, uint8_t attn_pin, long long gs_addr,
-              SPIClass *spi_dev, size_t send_delay = 200);
+              SPIClass *spi_dev);
 
     void writeBytes_spi(char *data_io, size_t length_bytes) override;
 
@@ -35,6 +35,8 @@ class XbeeProSX : public XBeeDevice {
 
     void incorrectChecksum(uint8_t calculated, uint8_t received) override;
 
+    void setAcks(bool acks_enabled);
+
     void log(const char *format, ...) override;
 
   private:
@@ -43,7 +45,6 @@ class XbeeProSX : public XBeeDevice {
     uint8_t _attn_pin;
     long long gs_addr;
     SPIClass *spi_dev;
-    size_t send_delay;
     size_t last_sent;
 
     uint8_t tx_buf[4096] = {};
@@ -58,6 +59,11 @@ class XbeeProSX : public XBeeDevice {
     HPRC_Command *rx_command;
     HPRC_CommandResponse tx_command_response;
     bool command_response_to_send = false;
+
+    uint32_t reenable_flightmode_counter = 0;
+    uint32_t last_reenable_flightmode = 0;
+
+    bool enable_acks = true;
 
     FsFile sd_root;
 

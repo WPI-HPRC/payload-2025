@@ -23,6 +23,7 @@ struct Context {
     AttEkfLogger attEkfLogger;
     PVEkfLogger pvKFLogger;
     double gyZBias; 
+    uint32_t xbeeLoggingDelay;
 
     //Servos
     Servo vertFlapServo;
