@@ -40,12 +40,11 @@ constexpr uint8_t MAX_FLAIL_ATTEMPTS = 4;
 
 constexpr uint32_t FLAP_EXTENDED_POS = 1500; //in PWM for fully extended flap
 constexpr uint32_t FLAP_RETRACTED_POS = 1000; //in PWM for fully retracted flap
-constexpr uint32_t AUGER_MAX_EXT_POS = 1500; //in PWM
-constexpr uint32_t AUGER_MAX_CLOSED_POS = 1000; //in PWM
-constexpr uint32_t AUGER_EXT_POS_BAND =  50;
+constexpr uint32_t AUGER_EXT_OUT_SPEED = 1500; //in PWM
+constexpr uint32_t AUGER_EXT_IN_SPEED = 1000; //in PWM
 constexpr uint32_t SOLID_DELIVERY_DOOR_OPEN_POS= 1500; //in PWM
 constexpr uint32_t SOLID_DELIVERY_DOOR_CLOSED_POS = 1000; //in PWM
 constexpr uint32_t SOLID_EJECTION_POS = 1500; //in PWM
 constexpr uint32_t LIQUID_DELIVERY_POS = 1500; //in PWM
 
-constexpr float DRILL_SPEED = 0.5; //im guessing m/s?
+constexpr uint32_t DRILL_SPEED = 2000; //in PWM

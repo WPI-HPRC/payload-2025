@@ -6,8 +6,8 @@ void Tumbling::initialize_impl() {
  
 State *Tumbling::loop_impl() {
     //if we came here from VerticalSide or HorizontalSide then we need to close the flaps
-    ctx->vertFlapServo.write(FLAP_RETRACTED_POS);
-    ctx->horzFlapServo.write(FLAP_RETRACTED_POS);
+    ctx->vertFlapServo.write(FLAP_RETRACTED_POS, this->currentTime);
+    ctx->horzFlapServo.write(FLAP_RETRACTED_POS, this->currentTime);
 
 
     // talk w colette here about using the gyro... iirc from rbe2002 the gyro has a ton of bias so numerically integrating it to find the current gyro velocity shouldn't work and i need to use the ekf? lowk i dont remember...
@@ -24,6 +24,7 @@ State *Tumbling::loop_impl() {
     }
 
     if (this->currentTime > MAX_TUMBLE_TIME) { //NOTE: if this happens then the gyro is cooked and we've tumbled forever... might as well give up and go to door deploy? :(
+        ctx->errorLogFile.printf("[%d] Tumbling state timed out\n", ::millis());
         return new SolidDelivery(ctx);
 
     }

@@ -15,6 +15,7 @@ State *PreLaunch::loop_impl() {
   if (accelData.getLastUpdated() != lastAccelReadingTime) {
     gyZBiasAvg.update(accelData->gyrZ);
     lastAccelReadingTime = accelData.getLastUpdated();
+    //TODO: Check LaunchThreshold
     if (accelDebouncer.update(accelData->accelZ > LAUNCH_THRESHHOLD,
                                     ::millis())) {
         ctx->gyZBias = gyZBiasAvg.getAvg();

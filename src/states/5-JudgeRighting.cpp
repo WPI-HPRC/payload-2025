@@ -9,13 +9,15 @@ void JudgeRighting::initialize_impl() {
 // FIX: change the axis to the quaternion one from the ekf
 State *JudgeRighting::loop_impl() {
     //just in case flaps aren't closed:
-    ctx->vertFlapServo.write(FLAP_RETRACTED_POS);
-    ctx->horzFlapServo.write(FLAP_RETRACTED_POS);
+    ctx->vertFlapServo.write(FLAP_RETRACTED_POS, this->currentTime);
+    ctx->horzFlapServo.write(FLAP_RETRACTED_POS, this->currentTime);
 
     const auto magData = ctx->mag.getData();
     if (magData.getLastUpdated() != lastMagReadTime){
         lastMagReadTime = magData.getLastUpdated();
+        //TODO: Check GroundSide Found is Correct
         GroundSide currSide = getGroundSide(magData->accelX, magData->accelY);
+        //TODO: Check multistate debouncer works
         GroundSide debouncedSide = judgeRightingDebouncer.update(currSide, ::millis());
         switch (debouncedSide) {
             case GroundSide::BOTTOM:
@@ -27,6 +29,11 @@ State *JudgeRighting::loop_impl() {
             case GroundSide::TOP:
                 return new VerticalSide(ctx);
         }
+    }
+
+    if (this->currentTime > MAX_TUMBLE_TIME){
+        ctx->errorLogFile.printf("[%d] Judge Righting state timed out\n", ::millis());
+        return new SolidDelivery(ctx);
     }
     
     return nullptr;

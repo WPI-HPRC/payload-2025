@@ -9,18 +9,12 @@ State *ExtendingAuger::loop_impl() {
     // no way to know if we are touching the ground w/o current sensing so imma j keep running this thing into the ground at full force until timer stop
 
     //TODO: Add current sensor and limit switch implementation
-    ctx->augerExtServo.write(AUGER_MAX_EXT_POS);
+    ctx->augerExtServo.write(AUGER_EXT_OUT_SPEED);
+    ctx->drillServo.write(DRILL_SPEED);
 
     //bc we want the drill to spin at a constant vel
 
-    //TODO: Write speed controller. Biggest issue rn is knowing what pins give encoder info and then writing the class for that... i have good 2002 code but its been a while
-
-    // ControlSpeed(ctx->drillServo, DRILL_SPEED);
-
-
-    if (std::abs((long)(ctx->augerExtServo.read() - AUGER_MAX_EXT_POS)) < AUGER_EXT_POS_BAND // we reached max extension
-        || this->currentTime > MAX_AUG_EXT_TIME//max extension couldn't be reached. probably drilling into a rock
-        ) {
+    if (this->currentTime > MAX_AUG_EXT_TIME) {
       return new FullyExtendedDrilling(ctx);
     }
 
