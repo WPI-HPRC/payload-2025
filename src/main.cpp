@@ -11,7 +11,7 @@
 #include <SPI.h>
 #include <boilerplate/Sensors/SensorManager/SensorManager.h>
 #include <boilerplate/StateMachine/StateMachine.h>
-#include <AxonController/AxonController.h>
+#include "boilerplate/Sensors/Impl/AxonController/AxonController.h"
 
 #include "config.h"
 
@@ -41,8 +41,8 @@ Context ctx = {
     .attEkfLogger = AttEkfLogger(),
     .pvKFLogger = PVEkfLogger(),
     .xbeeLoggingDelay = 50,
-    .vertFlapServo = AxonController(AXON_VER_OUT_PIN, AXON_VER_IN_PIN, AXON_KP, AXON_KI, AXON_KD, AXON_VER_OUT_MIN, AXON_VER_OUT_MAX),
-    .horzFlapServo = AxonController(AXON_HOR_OUT_PIN, AXON_HOR_IN_PIN, AXON_KP, AXON_KI, AXON_KD, AXON_HOR_OUT_MIN, AXON_HOR_OUT_MAX)
+    .vertFlapServo = AxonController(AXON_VER_OUT_PIN, AXON_VER_IN_PIN, AXON_KP, AXON_KI, AXON_KD, AXON_VER_OUT_MIN, AXON_VER_OUT_MAX, AXON_POT_MIN, AXON_POT_MAX),
+    .horzFlapServo = AxonController(AXON_HOR_OUT_PIN, AXON_HOR_IN_PIN, AXON_KP, AXON_KI, AXON_KD, AXON_HOR_OUT_MIN, AXON_HOR_OUT_MAX, AXON_POT_MIN, AXON_POT_MAX)
 };
 
 XbeeProSX xbee = XbeeProSX(&ctx, XBEE_CS, XBEE_ATTN, GROUNDSTATION_XBEE_ADDRESS,
@@ -113,14 +113,6 @@ void setup() {
 #endif
     Serial.begin(9600);
 
-    // idk if both of the `write`s are necessary, but it seems to help with it
-    // not reseting to neutral for very long
-    // ctx.airbrakes.write(SERVO_MIN);
-    // ctx.airbrakes.init();
-    // ctx.airbrakes.write(SERVO_MIN);
-
-    Wire.setSCL(SENSOR_SCL);
-    Wire.setSDA(SENSOR_SDA);
     Wire.begin();
 
 #if defined(MARS)
@@ -218,6 +210,12 @@ void mainLoop() {
         lastPVKfDataLogged =
             ctx.pvKFLogger.logCsvRow(ctx.logFile, lastPVKfDataLogged);
         ctx.logFile.print(",");
+
+        ctx.logFile.print(ctx.vertFlapServo.read());
+        ctx.logFile.print(",");
+        ctx.logFile.print(ctx.horzFlapServo.read());
+        ctx.logFile.print(",");
+
         ctx.logFile.println();    
     }
 }
@@ -271,6 +269,9 @@ void loggingLoop() {
     ctx.mag.debugLog(Serial);
     ctx.attEkfLogger.debugLog(Serial);
     ctx.pvKFLogger.debugLog(Serial);
+
+    ctx.vertFlapServo.debugLog(Serial);
+    ctx.horzFlapServo.debugLog(Serial);
 
     if (sd_initialized && ctx.logFile) {
         ledState = !ledState;

@@ -33,6 +33,10 @@
     #define AXON_VER_OUT_MAX 1660
     #define AXON_HOR_OUT_MIN 1395
     #define AXON_HOR_OUT_MAX 1660
+
+    #define AXON_POT_MIN 0
+    #define AXON_POT_MAX 10000
+
     #define AXON_KP 0.1
     #define AXON_KI 0.1
     #define AXON_KD 0.1

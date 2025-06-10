@@ -3,7 +3,7 @@
 #include "BasicLinearAlgebra.h"
 #include "boilerplate/StateEstimator/AttEkf.h"
 #include "boilerplate/StateEstimator/PVKF.h"
-#include "AxonController/AxonController.h"
+#include "boilerplate/Sensors/Impl/AxonController/AxonController.h"
 #include "config.h"
 
 struct Context {
@@ -23,8 +23,8 @@ struct Context {
     bool flightMode;
     AttEkfLogger attEkfLogger;
     PVEkfLogger pvKFLogger;
-    double gyZBias; 
     uint32_t xbeeLoggingDelay;
+    double gyZBias; 
     float initialAltitude;
 
     //Servos
@@ -52,5 +52,10 @@ struct Context {
         attEkfLogger.logCsvHeader(logFile);
         logFile.print(",");
         pvKFLogger.logCsvHeader(logFile);
+        logFile.print(",");
+        vertFlapServo.logCsvHeader(logFile);
+        logFile.print(",");
+        horzFlapServo.logCsvHeader(logFile);
+        logFile.println();
     }
 };
