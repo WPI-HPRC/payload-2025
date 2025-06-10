@@ -15,6 +15,7 @@
 #include "config.h"
 
 #include "telemetry/XBeeProSX.h"
+#include <IWatchdog.h>
 
 
 #if defined(MARS)
@@ -176,6 +177,8 @@ void setup() {
 
     looper.init();
     lowPrioLooper.init();
+
+    IWatchdog.begin(4000000);
 }
 
 void mainLoop() {
@@ -197,26 +200,18 @@ void mainLoop() {
     if (sd_initialized && ctx.logFile) {
         ctx.logFile.print(millis());
         ctx.logFile.print(",");
+        ctx.logFile.print(stateMachine.getCurrentStateId());
+        ctx.logFile.print(",");
+        ctx.logFile.print(ctx.flightMode);
+        ctx.logFile.print(",");
 
         lastBaroDataLogged = ctx.baro.logCsvRow(ctx.logFile, lastBaroDataLogged);
         ctx.logFile.print(",");
 
-        lastAccelDataLogged = ctx.accel.logCsvRow(ctx.logFile, lastAccelDataLogged);
-        ctx.logFile.print(",");
-
-        lastMagDataLogged = ctx.mag.logCsvRow(ctx.logFile, lastMagDataLogged);
-        ctx.logFile.print(",");
-
-        lastGpsDataLogged = ctx.gps.logCsvRow(ctx.logFile, lastGpsDataLogged);
-        ctx.logFile.print(",");
-
-        lastAttKfDataLogged =
-            ctx.attEkfLogger.logCsvRow(ctx.logFile, lastAttKfDataLogged);
-        ctx.logFile.print(",");
-
         lastPVKfDataLogged =
             ctx.pvKFLogger.logCsvRow(ctx.logFile, lastPVKfDataLogged);
-        ctx.logFile.println();        
+        ctx.logFile.print(",");
+        ctx.logFile.println();    
     }
 }
 
@@ -278,4 +273,4 @@ void loggingLoop() {
 
 void occasionalLoop() { ctx.logFile.flush(); }
 
-void loop() { handleSDInterface(&ctx); }
+void loop() { handleSDInterface(&ctx); IWatchdog.reload();}

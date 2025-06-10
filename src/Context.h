@@ -37,7 +37,7 @@ struct Context {
     bool inBushTimesFlailed = 0; // if i was the only one looking at this code i would name this: its_so_over = ts pmo 🥀 ... when we get to 4 times flailed then we give up
 
     void logCsvHeader() {
-        logFile.print("timestamp,");
+        logFile.print("timestamp,state,flightMode,");
         baro.logCsvHeader(logFile);
         logFile.print(",");
         accel.logCsvHeader(logFile);
@@ -49,6 +49,5 @@ struct Context {
         attEkfLogger.logCsvHeader(logFile);
         logFile.print(",");
         pvKFLogger.logCsvHeader(logFile);
-        logFile.println();
     }
 };
