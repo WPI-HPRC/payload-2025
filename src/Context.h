@@ -3,6 +3,7 @@
 #include "BasicLinearAlgebra.h"
 #include "boilerplate/StateEstimator/AttEkf.h"
 #include "boilerplate/StateEstimator/PVKF.h"
+#include "AxonController/AxonController.h"
 #include "config.h"
 
 struct Context {
@@ -26,8 +27,8 @@ struct Context {
     float initialAltitude;
 
     //Servos
-    Servo vertFlapServo;
-    Servo horzFlapServo;
+    AxonController vertFlapServo;
+    AxonController horzFlapServo;
     Servo augerExtServo;
     Servo drillServo;
     Servo SolidDeliveryDoorServo;

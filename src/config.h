@@ -24,14 +24,15 @@
 
     #define XBEE_ATTN PD8
 
-    #define SENSOR_SCL PB6
-    #define SENSOR_SDA PB7
+    #define AXON_VER_OUT_PIN A3
+    #define AXON_VER_IN_PIN A4
+    #define AXON_HOR_OUT_PIN A3
+    #define AXON_HOR_IN_PIN A4
 
-    #define SERVO_MIN 1395
-    #define SERVO_MAX 1660
-
-    #define AXON_MIN 1395
-    #define AXON_MAX 1660
+    #define AXON_VER_OUT_MIN 1395
+    #define AXON_VER_OUT_MAX 1660
+    #define AXON_HOR_OUT_MIN 1395
+    #define AXON_HOR_OUT_MAX 1660
     #define AXON_KP 0.1
     #define AXON_KI 0.1
     #define AXON_KD 0.1
