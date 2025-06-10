@@ -8,22 +8,28 @@ void PreLaunch::initialize_impl() {
 
 State *PreLaunch::loop_impl() {
 
-  const auto magData = ctx->mag.getData();
-  if (magData.getLastUpdated() != lastAccelReadingTime) {
-      gyZBiasAvg.update(magData->gyrZ);
-      lastAccelReadingTime = magData.getLastUpdated();
-      if (launchAccelDebouncer.update(std::abs(magData->accelZ) > LAUNCH_THRESHHOLD_G, //added abs for the accel!
-                                      ::millis())) {
-          ctx->gyZBias = gyZBiasAvg.getAvg();
-          return new Coast(ctx);
-      }
-  }
+  const auto accelData = ctx->mag.getData();
+  const auto baroData = ctx->baro.getData();
 
 
-  Serial.println("PreLaunch looped");
+  if (accelData.getLastUpdated() != lastAccelReadingTime) {
+    gyZBiasAvg.update(accelData->gyrZ);
+    lastAccelReadingTime = accelData.getLastUpdated();
+    if (accelDebouncer.update(accelData->accelZ > LAUNCH_THRESHHOLD,
+                                    ::millis())) {
+        ctx->gyZBias = gyZBiasAvg.getAvg();
+        return new Coast(ctx);
+    }
+}
 
-  /*if (this->currentTime > 5000) {
-    return (State *)new Boost(this->ctx);
-  }*/
+if (!altAverager.isBufferSaturated() && baroData.getLastUpdated() != lastBaroReadingTime) {
+    lastBaroReadingTime = baroData.getLastUpdated();
+    altAverager.update(baroData->altitude);
+
+    if (altAverager.isBufferSaturated()) {
+        ctx->initialAltitude = altAverager.getAvg();
+        ctx->errorLogFile.printf("[%u] Initial altitude: %f m\n", ::millis(), ctx->initialAltitude);
+    }
+}
   return nullptr;
 }
