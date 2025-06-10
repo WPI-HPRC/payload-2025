@@ -23,6 +23,7 @@ struct Context {
     AttEkfLogger attEkfLogger;
     PVEkfLogger pvKFLogger;
     double gyZBias; 
+    float initialAltitude;
 
     //Servos
     Servo vertFlapServo;
