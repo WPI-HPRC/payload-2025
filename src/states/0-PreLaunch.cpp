@@ -14,6 +14,11 @@ State *PreLaunch::loop_impl() {
 
   if (accelData.getLastUpdated() != lastAccelReadingTime) {
     gyZBiasAvg.update(accelData->gyrZ);
+    
+    #ifdef DEBUG
+        Serial.print(">gyro_bias_avg:"); Serial.println(gyZBiasAvg.getAvg());
+    #endif
+
     lastAccelReadingTime = accelData.getLastUpdated();
     //TODO: Check LaunchThreshold
     if (accelDebouncer.update(accelData->accelZ > LAUNCH_THRESHHOLD,

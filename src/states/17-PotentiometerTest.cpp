@@ -1,0 +1,19 @@
+#pragma once
+
+#include "States.h"
+
+void PotentiometerTest::initialize_impl() {
+    Serial.println("Starting Potentiometer Test State");
+}
+
+State* PotentiometerTest::loop_impl() {
+    // Read and print raw potentiometer values from both flaps
+    int horzPotValue = ctx->horzFlapServo.read();
+    int vertPotValue = ctx->vertFlapServo.read(); 
+    
+    Serial.print(">horzFlap_raw:"); Serial.println(horzPotValue);
+    Serial.print(">vertFlap_raw:"); Serial.println(vertPotValue);
+
+    // No transitions needed
+    return nullptr;
+}

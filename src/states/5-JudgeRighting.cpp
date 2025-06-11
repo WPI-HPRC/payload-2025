@@ -15,10 +15,28 @@ State *JudgeRighting::loop_impl() {
     const auto magData = ctx->mag.getData();
     if (magData.getLastUpdated() != lastMagReadTime){
         lastMagReadTime = magData.getLastUpdated();
+        
+#ifdef DEBUG
+        Serial.print(">accel_x:"); Serial.println(magData->accelX);
+        Serial.print(">accel_y:"); Serial.println(magData->accelY);
+#endif
+
         //TODO: Check GroundSide Found is Correct
         GroundSide currSide = getGroundSide(magData->accelX, magData->accelY);
+        
+#ifdef DEBUG
+        Serial.print(">ground_side_raw:"); Serial.println((int)currSide);
+        Serial.print(">ground_side_raw_str:"); Serial.println(groundSideToString(currSide));
+#endif
+
         //TODO: Check multistate debouncer works
         GroundSide debouncedSide = judgeRightingDebouncer.update(currSide, ::millis());
+        
+#ifdef DEBUG
+        Serial.print(">ground_side_debounced:"); Serial.println((int)debouncedSide);
+        Serial.print(">ground_side_debounced_str:"); Serial.println(groundSideToString(debouncedSide));
+#endif
+
         switch (debouncedSide) {
             case GroundSide::BOTTOM:
             // I WOULD LOVE TO HAVE AN IR SENSOR RN  -_-
@@ -39,6 +57,19 @@ State *JudgeRighting::loop_impl() {
     return nullptr;
 }
 
+/**
+ * @brief Convert GroundSide enum to string for debugging
+ */
+const char* JudgeRighting::groundSideToString(GroundSide side) {
+    switch (side) {
+        case GroundSide::TOP: return "TOP";
+        case GroundSide::BOTTOM: return "BOTTOM";
+        case GroundSide::LEFT: return "LEFT";
+        case GroundSide::RIGHT: return "RIGHT";
+        case GroundSide::UNKNOWN: return "UNKNOWN";
+        default: return "INVALID";
+    }
+}
 
 /**
  * @brief We use the absolute magnitude of accelX and accelY to determine what axis gravity influences more (essentially usees the concept of component based. 

@@ -26,7 +26,8 @@ enum StateId {
     ID_LiquidDelivery,
     ID_SolidEjection,
     ID_Recovery,
-    ID_Abort
+    ID_Abort,
+    ID_PotentiometerTest
 };
 
 using State = TState<Context, StateId, decltype(&millis)>;
@@ -88,6 +89,7 @@ class JudgeRighting : public State {
     long lastMagReadTime = 0;
 
     GroundSide getGroundSide(const float& accelX, const float& accelY);
+    const char* groundSideToString(GroundSide side);
 };
 
 class HorizontalSide : public State {
@@ -140,4 +142,8 @@ class Recovery : public State {
 
 class Abort : public State {
     STATE_INNER(Abort)
+};
+
+class PotentiometerTest : public State {
+    STATE_INNER(PotentiometerTest)
 };
