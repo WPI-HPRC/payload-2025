@@ -1,5 +1,7 @@
 #include "States.h"
 
+#define DEBUG
+
 void PreLaunch::initialize_impl() {
   Serial.println("PreLaunch initialized!");
 }

@@ -18,6 +18,9 @@
 #include "telemetry/XBeeProSX.h"
 #include <IWatchdog.h>
 
+#define DEBUG_ACCEL
+#define DEBUG_MAG
+
 
 #if defined(MARS)
 SPIClass xbee_spi(XBEE_MOSI, XBEE_MISO, XBEE_SCLK);
@@ -263,15 +266,80 @@ void loggingLoop() {
     static bool ledState = true;
 
     Serial.println(millis());
-    ctx.accel.debugLog(Serial);
-    ctx.baro.debugLog(Serial);
-    ctx.gps.debugLog(Serial);
-    ctx.mag.debugLog(Serial);
-    ctx.attEkfLogger.debugLog(Serial);
-    ctx.pvKFLogger.debugLog(Serial);
+    //ctx.accel.debugLog(Serial);
+    //ctx.baro.debugLog(Serial);
+    //ctx.gps.debugLog(Serial);
+    //ctx.mag.debugLog(Serial);
+    //ctx.attEkfLogger.debugLog(Serial);
+    //ctx.pvKFLogger.debugLog(Serial);
 
-    ctx.vertFlapServo.debugLog(Serial);
-    ctx.horzFlapServo.debugLog(Serial);
+    //ctx.vertFlapServo.debugLog(Serial);
+    //ctx.horzFlapServo.debugLog(Serial);
+
+#ifdef DEBUG_ACCEL
+    // Accelerometer data
+    auto accelData = ctx.mag.getData();
+    Serial.print(">accel_x:"); Serial.println(accelData->accelX);
+    Serial.print(">accel_y:"); Serial.println(accelData->accelY);
+    Serial.print(">accel_z:"); Serial.println(accelData->accelZ);
+#endif
+
+#ifdef DEBUG_BARO
+    // Barometer data
+    auto baroData = ctx.baro.getData();
+    Serial.print(">baro_altitude:"); Serial.println(baroData->altitude);
+    Serial.print(">baro_pressure:"); Serial.println(baroData->pressure);
+    Serial.print(">baro_temperature:"); Serial.println(baroData->temperature);
+#endif
+
+#ifdef DEBUG_GPS
+    // GPS data
+    auto gpsData = ctx.gps.getData();
+    Serial.print(">gps_lat:"); Serial.println(gpsData->lat, 8);
+    Serial.print(">gps_lon:"); Serial.println(gpsData->lon, 8);
+    Serial.print(">gps_altitude:"); Serial.println(gpsData->altitude);
+    Serial.print(">gps_lock_type:"); Serial.println(gpsData->gpsLockType);
+    Serial.print(">gps_satellites:"); Serial.println(gpsData->satellites);
+#endif
+
+#ifdef DEBUG_MAG
+    // Magnetometer data
+    auto magData = ctx.mag.getData();
+    Serial.print(">gyro_x:"); Serial.println(magData->gyrX);
+    Serial.print(">gyro_y:"); Serial.println(magData->gyrY);
+    Serial.print(">gyro_z:"); Serial.println(magData->gyrZ);
+#endif
+
+#ifdef DEBUG_EKF
+    // Attitude EKF data
+    auto attState = ctx.attEkfLogger.getState();
+    Serial.print(">att_quat_w:"); Serial.println(attState(0));
+    Serial.print(">att_quat_x:"); Serial.println(attState(1));
+    Serial.print(">att_quat_y:"); Serial.println(attState(2));
+    Serial.print(">att_quat_z:"); Serial.println(attState(3));
+#endif
+
+#ifdef DEBUG_PV
+    // PV KF data
+    auto pvState = ctx.pvKFLogger.getState();
+    Serial.print(">pv_lat:"); Serial.println(pvState(0), 8);
+    Serial.print(">pv_lon:"); Serial.println(pvState(1), 8);
+    Serial.print(">pv_alt:"); Serial.println(pvState(2));
+    Serial.print(">pv_vel_n:"); Serial.println(pvState(3));
+    Serial.print(">pv_vel_e:"); Serial.println(pvState(4));
+    Serial.print(">pv_vel_d:"); Serial.println(pvState(5));
+#endif
+
+#ifdef DEBUG_SERVOS
+    // Servo positions
+    Serial.print(">vert_flap_pos:"); Serial.println(ctx.vertFlapServo.read());
+    Serial.print(">horz_flap_pos:"); Serial.println(ctx.horzFlapServo.read());
+#endif
+
+#ifdef DEBUG_STATE
+    // Current state
+    Serial.print(">current_state:"); Serial.println(stateMachine.getCurrentStateId());
+#endif
 
     if (sd_initialized && ctx.logFile) {
         ledState = !ledState;
