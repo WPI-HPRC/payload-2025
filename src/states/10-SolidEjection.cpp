@@ -6,12 +6,11 @@ void SolidEjection::initialize_impl() {
 
 State* SolidEjection::loop_impl() {
     Serial.println("Solid Ejection looped");
+    ctx->SolidDeliveryDoorServo.write(1500);
     ctx->SolidEjectionServo.write(SOLID_EJECTION_POS);
-    ctx->augerExtServo.write(0); //close auger
 
 
     if (this->currentTime > MAX_SOLID_EJECTION_TIME) {
-        //FIXME: Turn on solenoids here
         return new LiquidDelivery(ctx);
     }
     return nullptr;

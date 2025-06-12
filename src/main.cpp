@@ -18,10 +18,10 @@
 #include "telemetry/XBeeProSX.h"
 #include <IWatchdog.h>
 
-#define DEBUG_ACCEL
-#define DEBUG_MAG
-#define DEBUG_STATE
-#define DEBUG_BARO
+//#define DEBUG_ACCEL
+//#define DEBUG_MAG
+//#define DEBUG_STATE
+//#define DEBUG_BARO
 
 
 #if defined(MARS)
@@ -57,10 +57,10 @@ Sensor *sensors[] = {&ctx.accel, &ctx.baro, &ctx.gps, &ctx.mag};
 
 SensorManager sensorManager(sensors, millis);
 
-StateMachine stateMachine(new DeadServoTest(&ctx));
+StateMachine stateMachine(new PreLaunch(&ctx));
 
-//AttStateEstimator quatEkf(ctx.mag.getData(), 0.025);
-//PVStateEstimator pvKF(ctx.baro.getData(), ctx.mag.getData(), ctx.gps.getData(), 0.025);
+AttStateEstimator quatEkf(ctx.mag.getData(), 0.025);
+PVStateEstimator pvKF(ctx.baro.getData(), ctx.mag.getData(), ctx.gps.getData(), 0.025);
 
 bool sd_initialized = false;
 
@@ -95,7 +95,7 @@ void occasionalLoop(); // For things like flushing SD card
 Looper<FunctionsList<mainLoop, xbeeLoop, loggingLoop, occasionalLoop>,
        FunctionDelaysList<10u, 50u, 250u, 1000u>>
     looper(100, 10, TIM2);
-//Looper<FunctionsList<EKFLoop>, FunctionDelaysList<25u>> lowPrioLooper(1000, 11, TIM3);
+Looper<FunctionsList<EKFLoop>, FunctionDelaysList<25u>> lowPrioLooper(1000, 11, TIM3);
 
 void setup() {
 #if defined(MARS)
@@ -116,7 +116,7 @@ void setup() {
     ctx.augerExtServo.attach(AUG_EXT_SERVO_OUT_PIN);
     ctx.drillServo.attach(DRILL_SERVO_OUT_PIN);
     ctx.SolidDeliveryDoorServo.attach(SOLID_DELIV_DOOR_SERVO_OUT_PIN);
-    ctx.SolidEjectionServo.attach(SOLID_DELIV_EJACULATE_SERVO_OUT_PIN);
+    ctx.SolidEjectionServo.attach(SOLID_DELIV_EJECT_SERVO_OUT_PIN);
     ctx.LiquidDeliveryServo.attach(LIQ_DELIV_SERVO_OUT_PIN);
 
     pinMode(SOL_BOT_OUT_PIN, OUTPUT);
@@ -190,7 +190,7 @@ void setup() {
     xbee.start();
 
     looper.init();
-    //lowPrioLooper.init();
+    lowPrioLooper.init();
 
     IWatchdog.begin(4000000);
 
@@ -239,7 +239,7 @@ void mainLoop() {
 
 void xbeeLoop() {return; xbee.loop(); }
 
-/*void EKFLoop() {
+void EKFLoop() {
     static TimedPointer<MAX10SData> gpsData = ctx.gps.getData();
     static TimedPointer<LPS22Data> baroData = ctx.baro.getData();
     static bool attEkfInitialized = false;
@@ -247,8 +247,8 @@ void xbeeLoop() {return; xbee.loop(); }
 
     if (attEkfInitialized && !pvInitialized &&
         (gpsData->gpsLockType == 3 || gpsData->gpsLockType == 2)) {
-        BLA::Matrix<6, 1> initialPV = {(float)gpsData->lat, (float)gpsData->lon, baroData->altitude, 0, 0, 0};
-        pvKF.init(initialPV, ctx.attEkfLogger.getState());
+        BLA::Matrix<3, 1> initialPV = {(float)gpsData->lat, (float)gpsData->lon, baroData->altitude};
+        pvKF.init(initialPV);
         pvInitialized = true;
     }
 
@@ -260,7 +260,7 @@ void xbeeLoop() {return; xbee.loop(); }
     auto x = quatEkf.onLoop(stateMachine.getCurrentStateId() == ID_PreLaunch);
 
     if (pvInitialized) {
-        auto pv = pvKF.onLoop();
+        auto pv = pvKF.onLoop(x);
         noInterrupts();
         ctx.pvKFLogger.newState(pv);
         interrupts();
@@ -272,7 +272,7 @@ void xbeeLoop() {return; xbee.loop(); }
     noInterrupts();
     ctx.attEkfLogger.newState(x);
     interrupts();
-} */
+} 
 
 void loggingLoop() {
     if (ctx.flightMode) return;
@@ -280,15 +280,15 @@ void loggingLoop() {
     static bool ledState = true;
 
     //Serial.println(millis());
-    //ctx.accel.debugLog(Serial);
-    //ctx.baro.debugLog(Serial);
-    //ctx.gps.debugLog(Serial);
-    //ctx.mag.debugLog(Serial);
-    //ctx.attEkfLogger.debugLog(Serial);
-    //ctx.pvKFLogger.debugLog(Serial);
+    ctx.accel.debugLog(Serial);
+    ctx.baro.debugLog(Serial);
+    ctx.gps.debugLog(Serial);
+    ctx.mag.debugLog(Serial);
+    ctx.attEkfLogger.debugLog(Serial);
+    ctx.pvKFLogger.debugLog(Serial);
 
-    //ctx.vertFlapServo.debugLog(Serial);
-    //ctx.horzFlapServo.debugLog(Serial);
+    ctx.vertFlapServo.debugLog(Serial);
+    ctx.horzFlapServo.debugLog(Serial);
 
 #ifdef DEBUG_ACCEL
     // Accelerometer data

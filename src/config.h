@@ -29,17 +29,17 @@
 
     #define AXON_VER_OUT_PIN PE4
     #define AXON_VER_IN_PIN PF4
-    #define AXON_HOR_OUT_PIN 2
+    #define AXON_HOR_OUT_PIN PE5
     #define AXON_HOR_IN_PIN PF5
 
-    #define AUG_EXT_SERVO_OUT_PIN PF1
+    #define AUG_EXT_SERVO_OUT_PIN PF2
     #define DRILL_SERVO_OUT_PIN PA1
-    #define SOLID_DELIV_EJACULATE_SERVO_OUT_PIN  PE2
+    #define SOLID_DELIV_EJECT_SERVO_OUT_PIN  PE2
     #define SOLID_DELIV_DOOR_SERVO_OUT_PIN PE3
 
-    #define LIQ_DELIV_SERVO_OUT_PIN  2
-    #define SOL_BOT_OUT_PIN 2
-    #define SOL_RIGHT_OUT_PIN 2
+    #define LIQ_DELIV_SERVO_OUT_PIN  PF3
+    #define SOL_BOT_OUT_PIN PC3_C
+    #define SOL_RIGHT_OUT_PIN PC2_C
 
     #define AXON_VER_OUT_MIN 1395
     #define AXON_VER_OUT_MAX 1660
@@ -49,8 +49,8 @@
     #define AXON_POT_MIN 0
     #define AXON_POT_MAX 10000
 
-    #define AXON_KP 0.1
-    #define AXON_KI 0.1
+    #define AXON_KP 0.5
+    #define AXON_KI 0.4
     #define AXON_KD 0.1
 
     #define LED_PIN PB9

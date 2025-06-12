@@ -131,6 +131,23 @@ class SolidDelivery : public State {
 
 class LiquidDelivery : public State {
     STATE_INNER(LiquidDelivery)
+
+
+    // Enum to represent which side is on the ground
+    enum class GroundSide { //FIXME: Check axis
+        TOP,        // Y+ side down
+        BOTTOM,     // Y- side down
+        LEFT,       // X- side down
+        RIGHT,      // X+ side down
+        UNKNOWN     // No side is clearly down
+    };
+
+    MultipleStateDebouncer<GroundSide> liquidDelivDebouncer = MultipleStateDebouncer<GroundSide>(500, 4, GroundSide::UNKNOWN); //TODO: check debouncer timings
+    long lastMagReadTime = 0;
+
+    bool oneValveOpen = false;
+
+    GroundSide getGroundSide(const float& accelX, const float& accelY);
 };
 
 class SolidEjection : public State {
@@ -152,6 +169,7 @@ class PotentiometerTest : public State {
 class DeadServoTest : public State {
     STATE_INNER(DeadServoTest)
 
-    int pos = 0;
+    int pos = 1500;
     bool increasing = true;
+    long long lastTimeRun = 0;
 };
