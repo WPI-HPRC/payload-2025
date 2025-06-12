@@ -14,4 +14,6 @@ State *FullyExtendedDrilling::loop_impl() {
       return new SolidDelivery(ctx);
     }
 
+    return nullptr;
+
 } 

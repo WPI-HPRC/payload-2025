@@ -24,10 +24,22 @@
 
     #define XBEE_ATTN PD8
 
-    #define AXON_VER_OUT_PIN A3
-    #define AXON_VER_IN_PIN A4
-    #define AXON_HOR_OUT_PIN A3
-    #define AXON_HOR_IN_PIN A4
+    #define SENSOR_SCL PB6
+    #define SENSOR_SDA PB7
+
+    #define AXON_VER_OUT_PIN PE4
+    #define AXON_VER_IN_PIN PF4
+    #define AXON_HOR_OUT_PIN 2
+    #define AXON_HOR_IN_PIN PF5
+
+    #define AUG_EXT_SERVO_OUT_PIN PF1
+    #define DRILL_SERVO_OUT_PIN PA1
+    #define SOLID_DELIV_EJACULATE_SERVO_OUT_PIN  PE2
+    #define SOLID_DELIV_DOOR_SERVO_OUT_PIN PE3
+
+    #define LIQ_DELIV_SERVO_OUT_PIN  2
+    #define SOL_BOT_OUT_PIN 2
+    #define SOL_RIGHT_OUT_PIN 2
 
     #define AXON_VER_OUT_MIN 1395
     #define AXON_VER_OUT_MAX 1660

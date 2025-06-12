@@ -24,7 +24,7 @@ struct Context {
     AttEkfLogger attEkfLogger;
     PVEkfLogger pvKFLogger;
     uint32_t xbeeLoggingDelay;
-    double gyZBias; 
+    double gyZBias = 0; 
     float initialAltitude;
 
     //Servos

@@ -20,6 +20,8 @@
 
 #define DEBUG_ACCEL
 #define DEBUG_MAG
+#define DEBUG_STATE
+#define DEBUG_BARO
 
 
 #if defined(MARS)
@@ -30,9 +32,9 @@ SPIClass xbee_spi = SPI;
 
 Context ctx = {
 #if defined(MARS)
-    .accel = ASM330(),
+    .accel = ASM330(true),
     .baro = LPS22(),
-    .mag = ICM20948(),
+    .mag = ICM20948(true),
     .sd = SdFs(),
 #elif defined(POLARIS)
     .accel = ICM42688_(),
@@ -55,10 +57,10 @@ Sensor *sensors[] = {&ctx.accel, &ctx.baro, &ctx.gps, &ctx.mag};
 
 SensorManager sensorManager(sensors, millis);
 
-StateMachine stateMachine((State *)new PreLaunch(&ctx));
+StateMachine stateMachine(new DeadServoTest(&ctx));
 
-AttStateEstimator quatEkf(ctx.mag.getData(), 0.025);
-PVStateEstimator pvKF(ctx.baro.getData(), ctx.mag.getData(), ctx.gps.getData(), 0.025);
+//AttStateEstimator quatEkf(ctx.mag.getData(), 0.025);
+//PVStateEstimator pvKF(ctx.baro.getData(), ctx.mag.getData(), ctx.gps.getData(), 0.025);
 
 bool sd_initialized = false;
 
@@ -93,8 +95,7 @@ void occasionalLoop(); // For things like flushing SD card
 Looper<FunctionsList<mainLoop, xbeeLoop, loggingLoop, occasionalLoop>,
        FunctionDelaysList<10u, 50u, 250u, 1000u>>
     looper(100, 10, TIM2);
-Looper<FunctionsList<EKFLoop>, FunctionDelaysList<25u>> lowPrioLooper(1000, 11,
-                                                                      TIM3);
+//Looper<FunctionsList<EKFLoop>, FunctionDelaysList<25u>> lowPrioLooper(1000, 11, TIM3);
 
 void setup() {
 #if defined(MARS)
@@ -109,6 +110,18 @@ void setup() {
 
     pinMode(PC12, INPUT_PULLDOWN);
 
+    ctx.vertFlapServo.init();
+    ctx.horzFlapServo.init();
+
+    ctx.augerExtServo.attach(AUG_EXT_SERVO_OUT_PIN);
+    ctx.drillServo.attach(DRILL_SERVO_OUT_PIN);
+    ctx.SolidDeliveryDoorServo.attach(SOLID_DELIV_DOOR_SERVO_OUT_PIN);
+    ctx.SolidEjectionServo.attach(SOLID_DELIV_EJACULATE_SERVO_OUT_PIN);
+    ctx.LiquidDeliveryServo.attach(LIQ_DELIV_SERVO_OUT_PIN);
+
+    pinMode(SOL_BOT_OUT_PIN, OUTPUT);
+    pinMode(SOL_RIGHT_OUT_PIN, OUTPUT);
+
     if (digitalRead(PC12) == HIGH) {
         setupSDInterface(&ctx);
         return;
@@ -116,6 +129,8 @@ void setup() {
 #endif
     Serial.begin(9600);
 
+    Wire.setSCL(SENSOR_SCL);
+    Wire.setSDA(SENSOR_SDA);
     Wire.begin();
 
 #if defined(MARS)
@@ -175,12 +190,11 @@ void setup() {
     xbee.start();
 
     looper.init();
-    lowPrioLooper.init();
+    //lowPrioLooper.init();
 
     IWatchdog.begin(4000000);
 
-    ctx.vertFlapServo.init();
-    ctx.horzFlapServo.init();
+
 }
 
 void mainLoop() {
@@ -223,9 +237,9 @@ void mainLoop() {
     }
 }
 
-void xbeeLoop() { xbee.loop(); }
+void xbeeLoop() {return; xbee.loop(); }
 
-void EKFLoop() {
+/*void EKFLoop() {
     static TimedPointer<MAX10SData> gpsData = ctx.gps.getData();
     static TimedPointer<LPS22Data> baroData = ctx.baro.getData();
     static bool attEkfInitialized = false;
@@ -258,14 +272,14 @@ void EKFLoop() {
     noInterrupts();
     ctx.attEkfLogger.newState(x);
     interrupts();
-}
+} */
 
 void loggingLoop() {
     if (ctx.flightMode) return;
     
     static bool ledState = true;
 
-    Serial.println(millis());
+    //Serial.println(millis());
     //ctx.accel.debugLog(Serial);
     //ctx.baro.debugLog(Serial);
     //ctx.gps.debugLog(Serial);
@@ -279,6 +293,7 @@ void loggingLoop() {
 #ifdef DEBUG_ACCEL
     // Accelerometer data
     auto accelData = ctx.mag.getData();
+    //Serial.println(ctx.accel.getInitStatus());
     Serial.print(">accel_x:"); Serial.println(accelData->accelX);
     Serial.print(">accel_y:"); Serial.println(accelData->accelY);
     Serial.print(">accel_z:"); Serial.println(accelData->accelZ);

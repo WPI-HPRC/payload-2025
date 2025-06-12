@@ -43,17 +43,13 @@ void XbeeProSX::loop() {
         telem_packet->temperature = ctx->baro.getData()->temperature;
         telem_packet->altitude = ctx->baro.getData()->altitude;
 
-        telem_packet->accelX = ctx->mag.getData()->accelX;
-        telem_packet->accelY = ctx->mag.getData()->accelY;
-        telem_packet->accelZ = ctx->mag.getData()->accelZ;
+        telem_packet->accelX = ctx->accel.getData()->accelX;
+        telem_packet->accelY = ctx->accel.getData()->accelY;
+        telem_packet->accelZ = ctx->accel.getData()->accelZ;
 
-        telem_packet->gyroX = ctx->mag.getData()->gyrX;
-        telem_packet->gyroY = ctx->mag.getData()->gyrY;
-        telem_packet->gyroZ = ctx->mag.getData()->gyrZ;
-
-        telem_packet->magX = ctx->mag.getData()->magX;
-        telem_packet->magY = ctx->mag.getData()->magY;
-        telem_packet->magZ = ctx->mag.getData()->magZ;
+        telem_packet->gyroX = ctx->accel.getData()->gyrX;
+        telem_packet->gyroY = ctx->accel.getData()->gyrY;
+        telem_packet->gyroZ = ctx->accel.getData()->gyrZ;
 
         telem_packet->gpsLat = ctx->gps.getData()->lat;
         telem_packet->gpsLong = ctx->gps.getData()->lon;

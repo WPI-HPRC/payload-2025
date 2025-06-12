@@ -5,6 +5,7 @@ void Tumbling::initialize_impl() {
 }
  
 State *Tumbling::loop_impl() {
+    Serial.println("Tumbling looped");
     //if we came here from VerticalSide or HorizontalSide then we need to close the flaps
     ctx->vertFlapServo.write(FLAP_RETRACTED_POS, this->currentTime);
     ctx->horzFlapServo.write(FLAP_RETRACTED_POS, this->currentTime);
@@ -16,8 +17,8 @@ State *Tumbling::loop_impl() {
     const auto gyroData = ctx->mag.getData();
     if (gyroData.getLastUpdated() != lastGyroReadTime) {
         lastGyroReadTime = gyroData.getLastUpdated();
-        // TODO: DO TESTING TO ACCOUNT FOR BIAS
-        if (tumblingDebouncer.update(std::abs(gyroData->gyrZ - ctx->gyZBias) < IS_END_TUMBLING_VEL_THRESHOLD, //TODO: check that axis is correct
+        // TODO: DO TESTING TO ACCOUNT FOR BIAS ✅
+        if (tumblingDebouncer.update(std::abs(gyroData->gyrZ - ctx->gyZBias) < IS_END_TUMBLING_VEL_THRESHOLD, //TODO: check that axis is correct ✅
                                         ::millis())) {
             return new JudgeRighting(ctx);
         }
@@ -29,6 +30,6 @@ State *Tumbling::loop_impl() {
 
     }
 
-    Serial.println("Tumbling looped");
+
     return nullptr;
 } 

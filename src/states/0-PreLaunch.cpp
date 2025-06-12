@@ -6,25 +6,24 @@ void PreLaunch::initialize_impl() {
   Serial.println("PreLaunch initialized!");
 }
 
-//TODO: Test Rolling Average for GyroBias
-
 State *PreLaunch::loop_impl() {
 
-  const auto accelData = ctx->mag.getData();
+  Serial.println("Prelaunch Looped");
+
+  const auto magData = ctx->mag.getData();
   const auto baroData = ctx->baro.getData();
 
-
-  if (accelData.getLastUpdated() != lastAccelReadingTime) {
-    gyZBiasAvg.update(accelData->gyrZ);
+  //TODO: Check gyZBiasAvg ✅
+  if (magData.getLastUpdated() != lastAccelReadingTime) {
+    gyZBiasAvg.update(magData->gyrZ);
     
     #ifdef DEBUG
         Serial.print(">gyro_bias_avg:"); Serial.println(gyZBiasAvg.getAvg());
     #endif
 
-    lastAccelReadingTime = accelData.getLastUpdated();
-    //TODO: Check LaunchThreshold
-    if (accelDebouncer.update(accelData->accelZ > LAUNCH_THRESHHOLD,
-                                    ::millis())) {
+    lastAccelReadingTime = magData.getLastUpdated();
+    //TODO: Check LaunchThreshold ✅
+    if (accelDebouncer.update(magData->accelZ > LAUNCH_THRESHHOLD, ::millis()) && (currentTime > 5000)) {
         ctx->gyZBias = gyZBiasAvg.getAvg();
         return new Coast(ctx);
     }

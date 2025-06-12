@@ -27,7 +27,8 @@ enum StateId {
     ID_SolidEjection,
     ID_Recovery,
     ID_Abort,
-    ID_PotentiometerTest
+    ID_PotentiometerTest,
+    ID_DeadServoTest
 };
 
 using State = TState<Context, StateId, decltype(&millis)>;
@@ -69,7 +70,7 @@ class Descent : public State {
     RunningExpAverage<float> ewma{0.1};
     float prevAltitude = 0;
     bool firstVelCalculated = false;
-    Debouncer velDebouncer = Debouncer(50);
+    Debouncer velDebouncer = Debouncer(1000);
     uint32_t lastBaroReadingTime = 0;
 };
 
@@ -112,7 +113,7 @@ class VerticalSide : public State {
 class Tumbling : public State {
     STATE_INNER(Tumbling)
 
-    Debouncer tumblingDebouncer = Debouncer(500);
+    Debouncer tumblingDebouncer = Debouncer(2000);
     long lastGyroReadTime = 0;
 };
 
@@ -146,4 +147,11 @@ class Abort : public State {
 
 class PotentiometerTest : public State {
     STATE_INNER(PotentiometerTest)
+};
+
+class DeadServoTest : public State {
+    STATE_INNER(DeadServoTest)
+
+    int pos = 0;
+    bool increasing = true;
 };

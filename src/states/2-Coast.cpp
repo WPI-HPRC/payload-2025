@@ -2,9 +2,11 @@
 
 void Coast::initialize_impl() {
   prevAltitude = this->ctx->baro.getData()->altitude;
+  Serial.println("Coast Init");
 }
 
 State *Coast::loop_impl() {
+  Serial.println("Coast Looped");
 
   const auto baroData = ctx->baro.getData();
 
@@ -12,13 +14,13 @@ State *Coast::loop_impl() {
     lastBaroReadingTime = baroData.getLastUpdated();
 
     ewma.update((baroData->altitude - prevAltitude) * (::millis() - lastBaroReadingTime) / 1000.);
-    //TODO: Check AP Vel Threshold
+    //TODO: Check AP Vel Threshold ✅
     if (velDebouncer.update(std::abs(ewma.getAvg()) < APOGEE_VEL_THRESHHOLD, ::millis())) {
       return new Descent(this->ctx);
     }
   }
 
-  //TODO: Check COAST_MAX_TIME
+  //TODO: Check COAST_MAX_TIME ✅
   if (this->currentTime >= COAST_MAX_TIME) {
     ctx->errorLogFile.printf("[%d] Coast state timed out\n", ::millis());
     return new Descent(this->ctx);
