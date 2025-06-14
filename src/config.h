@@ -41,6 +41,8 @@
     #define SOL_BOT_OUT_PIN PC3_C
     #define SOL_RIGHT_OUT_PIN PC2_C
 
+    #define RELAY_PIN PC0
+
     #define AXON_VER_OUT_MIN 1395
     #define AXON_VER_OUT_MAX 1660
     #define AXON_HOR_OUT_MIN 1395

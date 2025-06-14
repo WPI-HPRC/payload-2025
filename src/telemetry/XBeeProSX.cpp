@@ -28,6 +28,10 @@ void XbeeProSX::start() {
     pinMode(_attn_pin, INPUT);
     digitalWrite(_cs_pin, HIGH);
 
+    pinMode(RELAY_PIN, OUTPUT);
+    digitalWrite(RELAY_PIN, LOW);
+
+
     last_sent = millis();
 }
 
@@ -195,6 +199,19 @@ void XbeeProSX::handleReceivePacket(XBee::ReceivePacket::Struct *frame) {
             tx_command_response.Message.clearSD.success = success;
             response_to_send = true;
         } break;
+        case HPRC_Command_setVideoActive_tag:
+            tx_command_response.which_Message =
+            HPRC_CommandResponse_setVideoActive_tag;
+            tx_command_response.Message.setVideoActive.success = true;
+            response_to_send = true;
+
+            Serial.printf("Writing relay pin to %d",
+                          rx_command->Message.setVideoActive.videoActive ? 1
+                                                                         : 0);
+
+            digitalWrite(RELAY_PIN,
+                         rx_command->Message.setVideoActive.videoActive ? HIGH
+                                                                        : LOW);
         case HPRC_Command_setAcksEnabled_tag:
                 setAcks(rx_command->Message.setAcksEnabled.acksEnabled);
             break;

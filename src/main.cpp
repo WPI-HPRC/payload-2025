@@ -237,7 +237,7 @@ void mainLoop() {
     }
 }
 
-void xbeeLoop() {return; xbee.loop(); }
+void xbeeLoop() { xbee.loop(); }
 
 void EKFLoop() {
     static TimedPointer<MAX10SData> gpsData = ctx.gps.getData();
