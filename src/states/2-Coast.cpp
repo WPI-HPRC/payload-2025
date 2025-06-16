@@ -1,14 +1,29 @@
 #include "States.h"
 
 void Coast::initialize_impl() {
-  Serial.println("Coast initialized!");
+  prevAltitude = this->ctx->baro.getData()->altitude;
+  Serial.println("Coast Init");
 }
 
 State *Coast::loop_impl() {
-    Serial.println("Coast looped");
+  Serial.println("Coast Looped");
 
-    if (this->currentTime > 5000) {
-      return (State *)new DrogueDescent(this->ctx);
+  const auto baroData = ctx->baro.getData();
+
+  if (lastBaroReadingTime != baroData.getLastUpdated()) {
+    lastBaroReadingTime = baroData.getLastUpdated();
+
+    ewma.update((baroData->altitude - prevAltitude) * (::millis() - lastBaroReadingTime) / 1000.);
+    //TODO: Check AP Vel Threshold ✅
+    if (velDebouncer.update(std::abs(ewma.getAvg()) < APOGEE_VEL_THRESHHOLD, ::millis())) {
+      return new Descent(this->ctx);
     }
-    return nullptr;
+  }
+
+  //TODO: Check COAST_MAX_TIME ✅
+  if (this->currentTime >= COAST_MAX_TIME) {
+    ctx->errorLogFile.printf("[%d] Coast state timed out\n", ::millis());
+    return new Descent(this->ctx);
+  }
+  return nullptr;
 }

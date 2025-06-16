@@ -1,18 +1,61 @@
 #pragma once
 
+#include "BasicLinearAlgebra.h"
+#include "boilerplate/StateEstimator/AttEkf.h"
+#include "boilerplate/StateEstimator/PVKF.h"
+#include "boilerplate/Sensors/Impl/AxonController/AxonController.h"
 #include "config.h"
 
 struct Context {
 #if defined(MARS)
-    ASM330* accel;
-    LPS22* baro;
-    ICM20948* mag;
-    //Add Servos here using servo class in boilerplate/Servo/Servo.h
-    
+    ASM330 accel;
+    LPS22 baro;
+    ICM20948 mag;
+    SdFs sd;
 #elif defined(POLARIS)
-    ICM42688_* accel;
-    MS5611* baro;
-    MMC5983* mag;
+    ICM42688_ accel;
+    MS5611 baro;
+    MMC5983 mag;
 #endif
-    MAX10S* gps;
+    MAX10S gps;
+    File logFile;
+    File errorLogFile;
+    bool flightMode;
+    AttEkfLogger attEkfLogger;
+    PVEkfLogger pvKFLogger;
+    uint32_t xbeeLoggingDelay;
+    double gyZBias = 0; 
+    float initialAltitude;
+
+    //Servos
+    AxonController vertFlapServo;
+    AxonController horzFlapServo;
+    Servo augerExtServo;
+    Servo drillServo;
+    Servo SolidDeliveryDoorServo;
+    Servo SolidEjectionServo;
+    Servo LiquidDeliveryServo;
+
+    // flags
+    bool inBushTimesFlailed = 0; // if i was the only one looking at this code i would name this: its_so_over = ts pmo 🥀 ... when we get to 4 times flailed then we give up
+
+    void logCsvHeader() {
+        logFile.print("timestamp,state,flightMode,");
+        baro.logCsvHeader(logFile);
+        logFile.print(",");
+        accel.logCsvHeader(logFile);
+        logFile.print(",");
+        mag.logCsvHeader(logFile);
+        logFile.print(",");
+        gps.logCsvHeader(logFile);
+        logFile.print(",");
+        attEkfLogger.logCsvHeader(logFile);
+        logFile.print(",");
+        pvKFLogger.logCsvHeader(logFile);
+        logFile.print(",");
+        vertFlapServo.logCsvHeader(logFile);
+        logFile.print(",");
+        horzFlapServo.logCsvHeader(logFile);
+        logFile.println();
+    }
 };

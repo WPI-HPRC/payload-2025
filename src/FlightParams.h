@@ -1,0 +1,50 @@
+#pragma once
+
+//TODO: CHECK EVERY PARAM! I want to see a nice green checkmark emoji when we confirm testing on a param! ✅
+
+
+#include <cstdint>
+constexpr float LAUNCH_THRESHHOLD_G = 5;
+constexpr float BURN_THRESHHOLD_G = 0.3;
+
+constexpr float LAUNCH_THRESHHOLD = 5; // [g] upwards acceleration greater than this value = launch detected
+
+constexpr uint32_t BOOST_MAX_TIME = 3000; // [ms] FIXME: put actual value here
+constexpr float BURNOUT_THRESHHOLD = 0.3; // [g] upwards accelerateion smaller than this value = motor burnout detected
+
+constexpr uint32_t COAST_MAX_TIME = 40000; // [ms] FIXME: put actual value here
+constexpr float APOGEE_VEL_THRESHHOLD = 0.3; // [m/s] magnitude of velocity (numerical derivative of baro alt) smaller than this value = apogee detected
+
+constexpr uint32_t DROGUE_DESCENT_MAX_TIME = 220000; // [ms] FIXME: put actual value here
+constexpr float DROGUE_DESCENT_VELOCITY = 23; // [m/s] magnitude of expected velocity during drogue descent FIXME: put actual value here
+constexpr float MAIN_DESCENT_VELOCITY = 10; // [m/s] magnitude of expected velocity during main descent FIXME: put actual value here
+constexpr float DROGUE_DESCENT_VEL_THRESHHOLD = (std::abs(MAIN_DESCENT_VELOCITY) + std::abs(DROGUE_DESCENT_VELOCITY)) / 2;
+
+constexpr uint32_t MAIN_DESCENT_MAX_TIME = 220000; // [ms] FIXME: put actual value here
+constexpr float LANDED_VEL_THRESHHOLD = 0.1; // [m/s] magnitude of velocity (numerical derivative of baro alt) smaller than this value = landing detected
+
+
+
+constexpr float IS_TUMBLING_VEL_THRESHOLD = 0.174; //10 dps in rad/s... idk the units for the gyro and this will obv need testing. Upper bound of hysterisis
+constexpr float IS_END_TUMBLING_VEL_THRESHOLD = 0.02; //made up number... lower bound of hysterisis to signify stop moving/stable
+constexpr uint32_t MAX_BOOST_TIME = 10000;
+constexpr uint32_t MAX_TUMBLE_TIME = 60000; // 5 minutes
+constexpr uint32_t MAX_TRY_BEFORE_FLAIL_TIME = 30000; // 30 seconds
+constexpr uint32_t MAX_AUG_EXT_TIME = 15000; //2 minute
+constexpr uint32_t MAX_DRILL_TIME = 30000; //1 minute
+constexpr uint32_t MAX_SOLID_DOOR_OPEN_TIME = 10000; //5 seconds
+constexpr uint32_t MAX_SOLID_EJECTION_TIME = 10000; //20 seconds
+constexpr uint32_t MAX_LIQUID_DELIVERY_TIME = 50000; //20 seconds
+
+constexpr uint8_t MAX_FLAIL_ATTEMPTS = 4;
+
+constexpr uint32_t FLAP_EXTENDED_POS = 1500; //in PWM for fully extended flap
+constexpr uint32_t FLAP_RETRACTED_POS = 1000; //in PWM for fully retracted flap
+constexpr uint32_t AUGER_EXT_OUT_SPEED = 1700; //in PWM
+constexpr uint32_t AUGER_EXT_IN_SPEED = 1000; //in PWM
+constexpr uint32_t SOLID_DELIVERY_DOOR_OPEN_POS= 1700; //in PWM
+constexpr uint32_t SOLID_DELIVERY_DOOR_CLOSED_POS = 1000; //in PWM
+constexpr uint32_t SOLID_EJECTION_POS = 2000; //in PWM
+constexpr uint32_t LIQUID_DELIVERY_POS = 2000; //in PWM
+
+constexpr uint32_t DRILL_SPEED = 1000; //in PWM
